@@ -1,4 +1,5 @@
 #include <ESP8266WiFi.h>
+#include <WiFiManager.h>
 #include <Ticker.h>
 #include <stdio.h>
 
@@ -13,22 +14,21 @@ WiFiEventHandler disconnectedEvent;
 Ticker ledTicker;
 bool conectedFlag = false;
 
+
+/// function definition
+void initWifiModule(void);
+
+
+
 void setup()
 {
     Serial.begin(115200);
     pinMode(LED_BUILTIN, OUTPUT);
+
+    initWifiModule();
 	
-    /// setup wifi mode
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
-
-    /// register events
-    connectedEvent = WiFi.onStationModeConnected(&onEspConnected);
-
     /// start ticker
     ledTicker.attach(0.4, blinkLED);
-
-
 }
 
 void loop()
@@ -48,4 +48,17 @@ void blinkLED(){
   if(conectedFlag) {
     ledTicker.attach(0.1, blinkLED);
   }
+}
+
+void initWifiModule(void){
+  /// setup wifi mode
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+
+    /// register events
+    connectedEvent = WiFi.onStationModeConnected(&onEspConnected);
+
+
+    WiFiManager wifiManger;
+    wifiManger.autoConnect("Wifi-Clock");
 }

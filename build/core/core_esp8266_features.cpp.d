@@ -1,2 +1,2 @@
-/home/saeed/Smart\ Electronics/Arduino/Wifi_tutorial/build/core/core_esp8266_features.cpp.o: \
- /home/saeed/.arduino15/packages/esp8266/hardware/esp8266/3.0.2/cores/esp8266/core_esp8266_features.cpp
+/home/Saeed/Smart\ Electronics/Arduino/Arduino_wifi/build/core/core_esp8266_features.cpp.o: \
+ /home/Saeed/.arduino15/packages/esp8266/hardware/esp8266/3.0.2/cores/esp8266/core_esp8266_features.cpp
