@@ -71,6 +71,6 @@ void initWifiModule(void){
 
 
     WiFiManager wifiManger;
-    wifiManger.autoConnect("Wifi-Clock");
+    //wifiManger.autoConnect("Wifi-Clock");
 }
 
