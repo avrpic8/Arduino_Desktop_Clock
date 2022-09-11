@@ -1,36 +1,11 @@
-/// for wifi module
-#include <ESP8266WiFi.h>
-#include <WiFiManager.h>
-
-/// display
-//#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-
-/// commons
-#include <Ticker.h>
-#include <stdio.h>
-
-/// Lcd pins
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
-
-WiFiEventHandler connectedEvent;
-WiFiEventHandler disconnectedEvent;
-Adafruit_SSD1306 display;
-
-TwoWire wire;
-
-/// ticker 
-Ticker ledTicker;
-bool conectedFlag = false;
+#include "src/myImports.h"
 
 /// function definition
 void onEspConnected(const WiFiEventStationModeConnected& event);
 void blinkLED();
 void showWifiStatus(const char* text);
 void initWifiModule(void);
-
+void printCounter(u_char counter, int x, int y);
 
 
 
@@ -48,7 +23,10 @@ void setup()
 
 void loop()
 {
+  counter++;
+  printCounter(counter, 50, 20);
   checkWifiStatus();
+  delay(1000);
 }
 
 
@@ -71,6 +49,8 @@ void initLcd(void){
       for(;;);
   }
   display.clearDisplay();
+  display.ssd1306_command(SSD1306_SETCONTRAST);
+  display.ssd1306_command(5);
 }
 
 void onEspConnected(const WiFiEventStationModeConnected& event){
@@ -105,4 +85,14 @@ void initWifiModule(void){
     WiFiManager wifiManger;
     //wifiManger.erase(true);
     wifiManger.autoConnect("Wifi-Clock");
+}
+
+void printCounter(u_char counter, int x, int y){
+  display.setTextSize(3);
+  display.setTextColor(WHITE,BLACK);
+  display.setCursor(x, y);
+  display.print("   ");
+  display.setCursor(x, y);
+  display.print(counter);
+  display.display();
 }
