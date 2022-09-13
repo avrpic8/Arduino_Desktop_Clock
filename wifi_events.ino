@@ -4,12 +4,12 @@
 void onEspConnected(const WiFiEventStationModeConnected& event);
 void blinkLED();
 void intiPins(void);
-void showWifiStatus(const char* text);
+void printWifiStatus(const char* text);
 void initWifiModule(void);
 void printCounter(u_char counter, int x, int y);
-int readRotEnc();
-int readRotEncSwitch();
-int encoderMenuSelect(void);
+void clearDisplayAt(int x, int y, String len);
+void printStringAt(int x, int y, String message);
+void showMainMenu(void);
 
 void setup()
 {
@@ -117,7 +117,6 @@ void printCounter(int counter, int x, int y){
   display.print(counter);
   display.display();
 }
-
 
 void clearDisplayAt(int x, int y, String len){
   display.setTextColor(WHITE,BLACK);
