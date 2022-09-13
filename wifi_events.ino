@@ -3,30 +3,46 @@
 /// function definition
 void onEspConnected(const WiFiEventStationModeConnected& event);
 void blinkLED();
+void intiPins(void);
 void showWifiStatus(const char* text);
 void initWifiModule(void);
 void printCounter(u_char counter, int x, int y);
-
-
+int readRotEnc();
+int readRotEncSwitch();
+int encoderMenuSelect(void);
 
 void setup()
 {
     Serial.begin(115200);
-    pinMode(LED_BUILTIN, OUTPUT);
-
+    
     initLcd();
+    intiPins();
     initWifiModule();
+
+
+    // register interrupt routine
+    attachInterrupt(digitalPinToInterrupt(PIN_IN1), checkPosition, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(PIN_IN2), checkPosition, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(PIN_SW), checkMenuSwitch, ONLOW);
 
     /// start ticker
     ledTicker.attach(0.4, blinkLED);
 }
 
-void loop()
+IRAM_ATTR void checkPosition()
 {
-  counter++;
-  printCounter(counter, 50, 20);
-  checkWifiStatus();
-  delay(1000);
+  menuIdx = menu.getMenuIndex();
+}
+IRAM_ATTR void checkMenuSwitch()
+{
+  menuIdx = 0;
+  menu.setMenuIndex(0);
+}
+
+void loop()
+{ 
+  if(conectedFlag) printWifiStatus("Connected");
+  showMainMenu();
 }
 
 
@@ -38,6 +54,11 @@ void blinkLED(){
   if(conectedFlag) {
     ledTicker.attach(0.1, blinkLED);
   }
+}
+
+void intiPins(void){
+  pinMode(PIN_SW, INPUT_PULLUP);
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void initLcd(void){
@@ -87,12 +108,79 @@ void initWifiModule(void){
     wifiManger.autoConnect("Wifi-Clock");
 }
 
-void printCounter(u_char counter, int x, int y){
-  display.setTextSize(3);
+void printCounter(int counter, int x, int y){
+  display.setTextSize(1);
   display.setTextColor(WHITE,BLACK);
   display.setCursor(x, y);
   display.print("   ");
   display.setCursor(x, y);
   display.print(counter);
   display.display();
+}
+
+
+void clearDisplayAt(int x, int y, String len){
+  display.setTextColor(WHITE,BLACK);
+  display.setCursor(x, y);
+  display.print(len); 
+  display.display(); 
+}
+
+void printStringAt(int x, int y, String message){
+  display.setTextColor(WHITE,BLACK);
+  display.setCursor(x, y);
+  display.print(message); 
+  display.display(); 
+}
+
+void showMainMenu(void){
+
+  display.setCursor(10, 16);
+  display.print("home");
+  display.display();
+
+  display.setCursor(10, 26);
+  display.print("clock settings");
+  display.display();
+
+  display.setCursor(10, 36);
+  display.print("wifi settings");
+  display.display();
+
+  display.setCursor(10, 46);
+  display.print("about system");
+  display.display();
+
+  while (1)
+  {
+    printCounter(menuIdx, 70, 16);
+    switch (menuIdx) {
+      case Home:
+          printStringAt(1, 16, "o");
+          clearDisplayAt(1, 26, " ");
+          clearDisplayAt(1, 36, " ");
+          clearDisplayAt(1, 46, " ");
+        break;
+      case Clock_SETTING:
+          clearDisplayAt(1, 16, " ");
+          printStringAt(1, 26, "o");
+          clearDisplayAt(1, 36, " ");
+          clearDisplayAt(1, 46, " ");
+        break;
+      case WIFI_SETTING:
+          clearDisplayAt(1, 16, " ");
+          clearDisplayAt(1, 26, " ");
+          printStringAt(1, 36, "o");
+          clearDisplayAt(1, 46, " ");
+        break;
+      case ABOUT_SYSTEM:
+          clearDisplayAt(1, 16, " ");
+          clearDisplayAt(1, 26, " ");
+          clearDisplayAt(1, 36, " ");
+          printStringAt(1, 46, "o");
+        break;
+    }
+  }
+  
+  
 }

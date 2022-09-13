@@ -1,3 +1,5 @@
+#include "definition.h"
+
 /// for wifi module
 #include <ESP8266WiFi.h>
 #include <WiFiManager.h>
@@ -11,9 +13,9 @@
 #include <Ticker.h>
 #include <stdio.h>
 
-/// Lcd pins
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
+/// rotary switch
+#include "menu/MyMenu.h"
+
 
 WiFiEventHandler connectedEvent;
 WiFiEventHandler disconnectedEvent;
@@ -25,6 +27,10 @@ TwoWire wire;
 Ticker ledTicker;
 bool conectedFlag = false;
 
+/// rotary
+//RotaryEncoder rotarySW(PIN_IN1, PIN_IN2, RotaryEncoder::LatchMode::FOUR0);
 
-u_char counter = 0;
+MyMenu menu(PIN_IN1, PIN_IN2, PIN_SW);
+
+int menuIdx = 0;
 
