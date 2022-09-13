@@ -27,10 +27,7 @@ TwoWire wire;
 Ticker ledTicker;
 bool conectedFlag = false;
 
-/// rotary
-//RotaryEncoder rotarySW(PIN_IN1, PIN_IN2, RotaryEncoder::LatchMode::FOUR0);
-
+/// menu selector
 MyMenu menu(PIN_IN1, PIN_IN2, PIN_SW);
-
 int menuIdx = 0;
 
