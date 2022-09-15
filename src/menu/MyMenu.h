@@ -9,6 +9,8 @@ class MyMenu{
         MyMenu(int pina, int pinb, int rotarySW);
         int getMenuIndex(void);
         void setMenuIndex(int index);
+        int checkMenuSwitch();
+        int getMenuRpm();
 
     private:
         int _menuIndex = 0;

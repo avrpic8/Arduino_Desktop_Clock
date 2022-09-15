@@ -4,8 +4,8 @@
 
 
 /// rotary
-#define PIN_IN1 D5
-#define PIN_IN2 D6
+#define PIN_ROTARY_IN1 D5
+#define PIN_ROTARY_IN2 D6
 #define PIN_SW  D7
 
 
@@ -13,4 +13,9 @@
 #define Home 0
 #define Clock_SETTING 1
 #define WIFI_SETTING 2
-#define ABOUT_SYSTEM 3
+#define SYSTEM 3
+#define DISPLAY 4
+#define EXIT 5
+
+#define CLICKED 1
+#define LONG_CLICKED 2

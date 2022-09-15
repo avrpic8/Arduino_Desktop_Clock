@@ -1,7 +1,10 @@
 #include "src/myImports.h"
 
+
+
 /// function definition
 void onEspConnected(const WiFiEventStationModeConnected& event);
+void onEspDisconnected(const WiFiEventStationModeDisconnected& event);
 void blinkLED();
 void intiPins(void);
 void printWifiStatus(const char* text);
@@ -21,9 +24,8 @@ void setup()
 
 
     // register interrupt routine
-    attachInterrupt(digitalPinToInterrupt(PIN_IN1), checkPosition, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(PIN_IN2), checkPosition, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(PIN_SW), checkMenuSwitch, ONLOW);
+    //attachInterrupt(digitalPinToInterrupt(PIN_ROTARY_IN1), checkPosition, CHANGE);
+    //attachInterrupt(digitalPinToInterrupt(PIN_ROTARY_IN2), checkPosition, CHANGE);
 
     /// start ticker
     ledTicker.attach(0.4, blinkLED);
@@ -31,17 +33,21 @@ void setup()
 
 IRAM_ATTR void checkPosition()
 {
+  Serial.println("interrupt");
   menuIdx = menu.getMenuIndex();
-}
-IRAM_ATTR void checkMenuSwitch()
-{
-  menuIdx = 0;
-  menu.setMenuIndex(0);
+  shouldRefresh = true;
 }
 
 void loop()
 { 
-  if(conectedFlag) printWifiStatus("Connected");
+  checkWifiStatus();
+
+  do{
+    //menuIdx = 0;
+    printStringAt(50, 20, "Test");
+    display.fillRect(01, 16, 100, 8, BLACK);
+    //display.display();
+  }while(menu.checkMenuSwitch() != LONG_CLICKED);
   showMainMenu();
 }
 
@@ -57,7 +63,6 @@ void blinkLED(){
 }
 
 void intiPins(void){
-  pinMode(PIN_SW, INPUT_PULLUP);
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
@@ -78,6 +83,12 @@ void onEspConnected(const WiFiEventStationModeConnected& event){
     Serial.print("connected to the wifi: ");
     Serial.println(event.ssid);
     conectedFlag = true;     
+}
+
+void onEspDisconnected(const WiFiEventStationModeDisconnected& event){
+    Serial.print("disconnected from the wifi: ");
+    Serial.println(event.ssid);
+    conectedFlag = false;     
 }
 
 void printWifiStatus(const char* text){
@@ -101,11 +112,13 @@ void checkWifiStatus(){
 void initWifiModule(void){
     /// register events
     connectedEvent = WiFi.onStationModeConnected(&onEspConnected);
+    disconnectedEvent = WiFi.onStationModeDisconnected(&onEspDisconnected);
+
     printWifiStatus("Connecting...");
 
-    WiFiManager wifiManger;
+    //WiFiManager wifiManger;
     //wifiManger.erase(true);
-    wifiManger.autoConnect("Wifi-Clock");
+    //wifiManger.autoConnect("Wifi-Clock");
 }
 
 void printCounter(int counter, int x, int y){
@@ -134,52 +147,238 @@ void printStringAt(int x, int y, String message){
 
 void showMainMenu(void){
 
+  attachInterrupt(digitalPinToInterrupt(PIN_ROTARY_IN1), checkPosition, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(PIN_ROTARY_IN2), checkPosition, CHANGE);
+
+  display.clearDisplay();
+  printStringAt(0,0, "Dashboard");
+
   display.setCursor(10, 16);
   display.print("home");
-  display.display();
 
   display.setCursor(10, 26);
   display.print("clock settings");
-  display.display();
 
   display.setCursor(10, 36);
   display.print("wifi settings");
-  display.display();
 
   display.setCursor(10, 46);
-  display.print("about system");
-  display.display();
+  display.print("system");
+
+  display.setCursor(10, 56);
+  display.print("display");
 
   while (1)
   {
-    printCounter(menuIdx, 70, 16);
     switch (menuIdx) {
       case Home:
-          printStringAt(1, 16, "o");
-          clearDisplayAt(1, 26, " ");
-          clearDisplayAt(1, 36, " ");
-          clearDisplayAt(1, 46, " ");
+            printStringAt(1, 16, "o");
+            clearDisplayAt(1, 26, " ");
+            clearDisplayAt(1, 36, " ");
+            clearDisplayAt(1, 46, " ");
+            clearDisplayAt(1, 56, " ");
+
+            display.fillRect(10, 16, 100, 8, BLACK);
+            display.setCursor(10, 16);
+            display.print("home");
+
+            display.fillRect(10, 26, 100, 8, BLACK);
+            display.setCursor(10, 26);
+            display.print("clock settings");
+
+            display.fillRect(10, 36, 100, 8, BLACK);
+            display.setCursor(10, 36);
+            display.print("wifi settings");
+
+            display.fillRect(10, 46, 100, 8, BLACK);
+            display.setCursor(10, 46);
+            display.print("system");
+
+            display.fillRect(10, 56, 100, 8, BLACK);
+            display.setCursor(10, 56);
+            display.print("display");
+
+            display.display();
+            shouldRefresh = false;
+          
+          if(menu.checkMenuSwitch() == CLICKED){
+            detachInterrupt(PIN_ROTARY_IN1);
+            detachInterrupt(PIN_ROTARY_IN2);
+            display.clearDisplay();
+            return;
+          }
         break;
+
       case Clock_SETTING:
-          clearDisplayAt(1, 16, " ");
-          printStringAt(1, 26, "o");
-          clearDisplayAt(1, 36, " ");
-          clearDisplayAt(1, 46, " ");
+ 
+            clearDisplayAt(1, 16, " ");
+            printStringAt(1, 26, "o");
+            clearDisplayAt(1, 36, " ");
+            clearDisplayAt(1, 46, " ");
+            clearDisplayAt(1, 56, " ");
+
+            display.fillRect(10, 16, 100, 8, BLACK);
+            display.setCursor(10, 16);
+            display.print("home");
+
+            display.fillRect(10, 26, 100, 8, BLACK);
+            display.setCursor(10, 26);
+            display.print("clock settings");
+
+            display.fillRect(10, 36, 100, 8, BLACK);
+            display.setCursor(10, 36);
+            display.print("wifi settings");
+
+            display.fillRect(10, 46, 100, 8, BLACK);
+            display.setCursor(10, 46);
+            display.print("system");
+
+            display.fillRect(10, 56, 100, 8, BLACK);
+            display.setCursor(10, 56);
+            display.print("display");
+
+            display.display();
+            shouldRefresh = false;
+          
         break;
+
       case WIFI_SETTING:
-          clearDisplayAt(1, 16, " ");
-          clearDisplayAt(1, 26, " ");
-          printStringAt(1, 36, "o");
-          clearDisplayAt(1, 46, " ");
+ 
+            clearDisplayAt(1, 16, " ");
+            clearDisplayAt(1, 26, " ");
+            printStringAt(1, 36, "o");
+            clearDisplayAt(1, 46, " ");
+            clearDisplayAt(1, 56, " ");
+
+            display.fillRect(10, 16, 100, 8, BLACK);
+            display.setCursor(10, 16);
+            display.print("home");
+
+            display.fillRect(10, 26, 100, 8, BLACK);
+            display.setCursor(10, 26);
+            display.print("clock settings");
+
+            display.fillRect(10, 36, 100, 8, BLACK);
+            display.setCursor(10, 36);
+            display.print("wifi settings");
+
+            display.fillRect(10, 46, 100, 8, BLACK);
+            display.setCursor(10, 46);
+            display.print("system");
+
+            display.fillRect(10, 56, 100, 8, BLACK);
+            display.setCursor(10, 56);
+            display.print("display");
+
+            display.display();
+            shouldRefresh = false;
+      
         break;
-      case ABOUT_SYSTEM:
-          clearDisplayAt(1, 16, " ");
-          clearDisplayAt(1, 26, " ");
-          clearDisplayAt(1, 36, " ");
-          printStringAt(1, 46, "o");
+
+      case SYSTEM:
+
+            clearDisplayAt(1, 16, " ");
+            clearDisplayAt(1, 26, " ");
+            clearDisplayAt(1, 36, " ");
+            printStringAt(1, 46, "o");
+            clearDisplayAt(1, 56, " ");
+
+            display.fillRect(10, 16, 100, 8, BLACK);
+            display.setCursor(10, 16);
+            display.print("home");
+
+            display.fillRect(10, 26, 100, 8, BLACK);
+            display.setCursor(10, 26);
+            display.print("clock settings");
+
+            display.fillRect(10, 36, 100, 8, BLACK);
+            display.setCursor(10, 36);
+            display.print("wifi settings");
+
+            display.fillRect(10, 46, 100, 8, BLACK);
+            display.setCursor(10, 46);
+            display.print("system");
+
+            display.fillRect(10, 56, 100, 8, BLACK);
+            display.setCursor(10, 56);
+            display.print("display");
+
+            display.display();
+            shouldRefresh = false;
+
+      break;
+
+      case DISPLAY:
+
+            clearDisplayAt(1, 16, " ");
+            clearDisplayAt(1, 26, " ");
+            clearDisplayAt(1, 36, " ");
+            clearDisplayAt(1, 46, " ");
+            printStringAt(1, 56, "o");
+
+            display.fillRect(10, 16, 100, 8, BLACK);
+            display.setCursor(10, 16);
+            display.print("home");
+
+            display.fillRect(10, 26, 100, 8, BLACK);
+            display.setCursor(10, 26);
+            display.print("clock settings");
+
+            display.fillRect(10, 36, 100, 8, BLACK);
+            display.setCursor(10, 36);
+            display.print("wifi settings");
+
+            display.fillRect(10, 46, 100, 8, BLACK);
+            display.setCursor(10, 46);
+            display.print("system");
+
+            display.fillRect(10, 56, 100, 8, BLACK);
+            display.setCursor(10, 56);
+            display.print("display");
+
+            display.display();
+            shouldRefresh = false;
+ 
+        break;
+
+      case EXIT:
+ 
+            clearDisplayAt(1, 16, " ");
+            clearDisplayAt(1, 26, " ");
+            clearDisplayAt(1, 36, " ");
+            clearDisplayAt(1, 46, " ");
+            printStringAt(1, 56, "o");
+
+            display.fillRect(10, 16, 100, 8, BLACK);
+            display.setCursor(10, 16);
+            display.print("clock settings");
+
+            display.fillRect(10, 26, 100, 8, BLACK);
+            display.setCursor(10, 26);
+            display.print("wifi settings");
+
+            display.fillRect(10, 36, 100, 8, BLACK);
+            display.setCursor(10, 36);
+            display.print("system");
+
+            display.fillRect(10, 46, 100, 8, BLACK);
+            display.setCursor(10, 46);
+            display.print("display");
+
+            display.fillRect(10, 56, 100, 8, BLACK);
+            display.setCursor(10, 56);
+            display.print("exit");
+
+            display.display();
+            shouldRefresh = false; 
+
+        if(menu.checkMenuSwitch() == CLICKED){
+            detachInterrupt(PIN_ROTARY_IN1);
+            detachInterrupt(PIN_ROTARY_IN2);
+            display.clearDisplay();
+            return;
+        }    
         break;
     }
   }
-  
-  
 }

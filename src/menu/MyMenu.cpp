@@ -1,3 +1,4 @@
+#include "../definition.h"
 #include"MyMenu.h"
 
 
@@ -43,8 +44,36 @@ int MyMenu::getMenuIndex(void) {
       _menuIndex = 0;
   } else if (reResult > 0) {      // up
     _menuIndex++;
-    if(_menuIndex > 3)
-        _menuIndex = 03;
+    if(_menuIndex > 5)
+        _menuIndex = 5;
   }
   return _menuIndex;
-}    
+} 
+
+int MyMenu::checkMenuSwitch(void){
+
+    static int lastSwState = LOW;
+    int swState = digitalRead(PIN_SW);
+
+    if (swState == LOW && lastSwState == HIGH) {
+        unsigned long startTime = millis();
+        
+        while (digitalRead(PIN_SW) == LOW) {                                    
+            lastSwState = swState;
+            if (millis() - startTime > 1000)
+                break;
+        }
+        
+        if (millis() - startTime > 1000)
+            return LONG_CLICKED;
+        else
+            return CLICKED;
+    }
+  
+    lastSwState = swState; 
+    return false;   
+}
+
+int MyMenu::getMenuRpm(){
+    return this->rotary.getRPM();
+}
