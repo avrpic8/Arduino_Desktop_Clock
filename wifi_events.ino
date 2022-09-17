@@ -1,7 +1,6 @@
 #include "src/myImports.h"
 
 
-
 /// function definition
 void onEspConnected(const WiFiEventStationModeConnected& event);
 void onEspDisconnected(const WiFiEventStationModeDisconnected& event);
@@ -19,13 +18,9 @@ void setup()
     Serial.begin(115200);
     
     initLcd();
+    initClock();
     intiPins();
     initWifiModule();
-
-
-    // register interrupt routine
-    //attachInterrupt(digitalPinToInterrupt(PIN_ROTARY_IN1), checkPosition, CHANGE);
-    //attachInterrupt(digitalPinToInterrupt(PIN_ROTARY_IN2), checkPosition, CHANGE);
 
     /// start ticker
     ledTicker.attach(0.4, blinkLED);
@@ -37,17 +32,12 @@ IRAM_ATTR void checkPosition()
   menuIdx = menu.getMenuIndex();
   shouldRefresh = true;
 }
-
+int count = 0;
+char buff[3];
 void loop()
 { 
-  checkWifiStatus();
-
-  do{
-    //menuIdx = 0;
-    printStringAt(50, 20, "Test");
-    display.fillRect(01, 16, 100, 8, BLACK);
-    //display.display();
-  }while(menu.checkMenuSwitch() != LONG_CLICKED);
+  //checkWifiStatus();
+  showClockPage();
   showMainMenu();
 }
 
@@ -77,6 +67,10 @@ void initLcd(void){
   display.clearDisplay();
   display.ssd1306_command(SSD1306_SETCONTRAST);
   display.ssd1306_command(5);
+}
+
+void initClock(){
+  myClock = Clock(&display);
 }
 
 void onEspConnected(const WiFiEventStationModeConnected& event){
@@ -114,7 +108,8 @@ void initWifiModule(void){
     connectedEvent = WiFi.onStationModeConnected(&onEspConnected);
     disconnectedEvent = WiFi.onStationModeDisconnected(&onEspDisconnected);
 
-    printWifiStatus("Connecting...");
+    //printWifiStatus("Connecting...");
+    WiFi.mode(WIFI_OFF);
 
     //WiFiManager wifiManger;
     //wifiManger.erase(true);
@@ -145,13 +140,28 @@ void printStringAt(int x, int y, String message){
   display.display(); 
 }
 
+void printAppBar(int x, int y, String title){
+  display.fillRect(0,0,126,15,WHITE);
+  display.setCursor(x, y);
+  display.setTextSize(1);
+  display.setTextColor(BLACK);
+  display.print(title);
+}
+
+void enableDefaultFont(){
+  display.setFont();
+  display.setTextSize(1);
+}
+
 void showMainMenu(void){
 
+  menuIdx = 0;
+  enableDefaultFont();
   attachInterrupt(digitalPinToInterrupt(PIN_ROTARY_IN1), checkPosition, CHANGE);
   attachInterrupt(digitalPinToInterrupt(PIN_ROTARY_IN2), checkPosition, CHANGE);
 
   display.clearDisplay();
-  printStringAt(0,0, "Dashboard");
+  printAppBar(35,3, "Dashboard");
 
   display.setCursor(10, 16);
   display.print("home");
@@ -380,5 +390,49 @@ void showMainMenu(void){
         }    
         break;
     }
+  }
+}
+
+void showClockPage(){
+
+  //display.setFont();
+  display.setFont(&Orbitron_Medium_7);
+
+  /// print am/pm
+  display.setTextColor(WHITE, BLACK);
+  display.setCursor(0, 10);
+  display.setTextSize(2);
+  display.print("PM");
+
+  /// print week
+  display.setCursor(55, 10);
+  display.setTextSize(2);
+  display.print("SU");
+
+  //myClock.displayHour(1, 45, 4, "01");
+  /// @brief print colon
+  display.setCursor(60, 45);
+  display.print(":");
+
+  //myClock.displayMin(72, 45, 4, "52");
+  //myClock.displaySec(85, 64, 3, "32");
+
+  /// @brief print date
+  display.setTextSize(1);
+  display.setCursor(1, 61);
+  display.print("12 jun 2022");
+  
+  while(menu.checkMenuSwitch() != LONG_CLICKED){
+    count ++;
+    snprintf(buff, 3, "%02d", count);
+    //display.fillRect(1, 20, 50,30, WHITE);
+    //display.fillRect(72, 25, 50,20, WHITE);
+
+    myClock.displayMin(72, 45, 4, buff);
+    myClock.displaySec(85, 64, 3, buff);
+    
+
+    delay(1000);
+    display.display();  
   }
 }

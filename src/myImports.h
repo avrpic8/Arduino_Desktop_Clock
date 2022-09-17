@@ -16,6 +16,13 @@
 /// rotary switch
 #include "menu/MyMenu.h"
 
+/// display clock
+#include"clock/Clock.h"
+
+/// fonts
+#include"customFonts/orbitron_9.h"
+#include<Fonts/FreeMonoOblique9pt7b.h>
+
 
 WiFiEventHandler connectedEvent;
 WiFiEventHandler disconnectedEvent;
@@ -32,4 +39,6 @@ MyMenu menu(PIN_ROTARY_IN1, PIN_ROTARY_IN2, PIN_SW);
 int menuIdx = 0;
 bool shouldRefresh = false;
 
+/// clock
+Clock myClock;
 
