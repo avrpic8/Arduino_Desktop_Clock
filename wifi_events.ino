@@ -12,6 +12,7 @@ void printCounter(u_char counter, int x, int y);
 void clearDisplayAt(int x, int y, String len);
 void printStringAt(int x, int y, String message);
 void showMainMenu(void);
+void showClockPage(void);
 
 void setup()
 {
@@ -23,7 +24,7 @@ void setup()
     initWifiModule();
 
     /// start ticker
-    ledTicker.attach(0.4, blinkLED);
+    ledTicker.attach(1, blinkLED);
 }
 
 IRAM_ATTR void checkPosition()
@@ -34,6 +35,7 @@ IRAM_ATTR void checkPosition()
 }
 int count = 0;
 char buff[3];
+
 void loop()
 { 
   //checkWifiStatus();
@@ -47,9 +49,11 @@ void loop()
 void blinkLED(){
   int state = digitalRead(LED_BUILTIN);
   digitalWrite(LED_BUILTIN, !state);
-  if(conectedFlag) {
-    ledTicker.attach(0.1, blinkLED);
-  }
+  // if(conectedFlag) {
+  //   ledTicker.attach(0.1, blinkLED);
+  // }
+
+  myClock.checkDisplaySleep();
 }
 
 void intiPins(void){
@@ -66,11 +70,12 @@ void initLcd(void){
   }
   display.clearDisplay();
   display.ssd1306_command(SSD1306_SETCONTRAST);
-  display.ssd1306_command(5);
+  display.ssd1306_command(1);
 }
 
 void initClock(){
   myClock = Clock(&display);
+  myClock.setDisplaySleepTime(20);
 }
 
 void onEspConnected(const WiFiEventStationModeConnected& event){
@@ -155,6 +160,8 @@ void enableDefaultFont(){
 
 void showMainMenu(void){
 
+  myClock.disableDisplaySleep();
+
   menuIdx = 0;
   enableDefaultFont();
   attachInterrupt(digitalPinToInterrupt(PIN_ROTARY_IN1), checkPosition, CHANGE);
@@ -214,6 +221,7 @@ void showMainMenu(void){
           if(menu.checkMenuSwitch() == CLICKED){
             detachInterrupt(PIN_ROTARY_IN1);
             detachInterrupt(PIN_ROTARY_IN2);
+            myClock.enableDisplaySleep();
             display.clearDisplay();
             return;
           }
@@ -386,6 +394,7 @@ void showMainMenu(void){
             detachInterrupt(PIN_ROTARY_IN1);
             detachInterrupt(PIN_ROTARY_IN2);
             display.clearDisplay();
+            myClock.enableDisplaySleep();
             return;
         }    
         break;
@@ -395,44 +404,32 @@ void showMainMenu(void){
 
 void showClockPage(){
 
-  //display.setFont();
-  display.setFont(&Orbitron_Medium_7);
-
-  /// print am/pm
   display.setTextColor(WHITE, BLACK);
-  display.setCursor(0, 10);
-  display.setTextSize(2);
-  display.print("PM");
 
-  /// print week
-  display.setCursor(55, 10);
-  display.setTextSize(2);
-  display.print("SU");
+  while(1){
 
-  //myClock.displayHour(1, 45, 4, "01");
-  /// @brief print colon
-  display.setCursor(60, 45);
-  display.print(":");
+    char clickStatus = menu.checkMenuSwitch();
+    if(clickStatus == CLICKED){
+      myClock.displayOn();
+      myClock.enableDisplaySleep();
+    }
+    if(clickStatus == LONG_CLICKED){
+      return;
+    }
 
-  //myClock.displayMin(72, 45, 4, "52");
-  //myClock.displaySec(85, 64, 3, "32");
-
-  /// @brief print date
-  display.setTextSize(1);
-  display.setCursor(1, 61);
-  display.print("12 jun 2022");
-  
-  while(menu.checkMenuSwitch() != LONG_CLICKED){
     count ++;
     snprintf(buff, 3, "%02d", count);
-    //display.fillRect(1, 20, 50,30, WHITE);
-    //display.fillRect(72, 25, 50,20, WHITE);
-
-    myClock.displayMin(72, 45, 4, buff);
-    myClock.displaySec(85, 64, 3, buff);
     
-
-    delay(1000);
+    myClock.dislayWeek(0, 0, 2, "SUN");
+    myClock.displayHour(0,16,5, buff);
+    myClock.displayColon(57, 30,2);
+    myClock.displayMin(68,16,5,buff);
+    myClock.displaySec(102, 0, 2, buff);
+    myClock.displayDate(0, 55, 1, "12 jun 2022");
+    myClock.displayAmPm(112, 55, 1, true);
+    
+    //delay(1000);
     display.display();  
+    
   }
 }
