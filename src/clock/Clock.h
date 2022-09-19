@@ -23,13 +23,15 @@ class Clock{
         void resetDisplaySleepTimer(void);
         void enableDisplaySleep(void);
         void disableDisplaySleep(void);
-        char isEnableDisplaySleep(void);
+        bool isEnableDisplaySleep(void);
+        bool isDisplayTimeOut(void);
 
     private:
         Adafruit_SSD1306* _display;
         u_int8_t _displaySleepTime = 0;
         u_int8_t _displaySleepCounter = 0;
-        char _allowDisplaySleep = 1;
+        bool _allowDisplaySleep = true;
+        bool _displayTimeOut = false;
 };
 
 

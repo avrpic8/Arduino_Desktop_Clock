@@ -11,6 +11,9 @@ void initWifiModule(void);
 void printCounter(u_char counter, int x, int y);
 void clearDisplayAt(int x, int y, String len);
 void printStringAt(int x, int y, String message);
+void enableDefaultFont();
+void enableRotaryMenuInterrupt(void);
+void disableRotaryMenuInterrupt(void);
 void showMainMenu(void);
 void showClockPage(void);
 
@@ -29,9 +32,8 @@ void setup()
 
 IRAM_ATTR void checkPosition()
 {
-  Serial.println("interrupt");
   menuIdx = menu.getMenuIndex();
-  shouldRefresh = true;
+  menu.setInputTime(millis());
 }
 int count = 0;
 char buff[3];
@@ -52,7 +54,6 @@ void blinkLED(){
   // if(conectedFlag) {
   //   ledTicker.attach(0.1, blinkLED);
   // }
-
   myClock.checkDisplaySleep();
 }
 
@@ -75,7 +76,7 @@ void initLcd(void){
 
 void initClock(){
   myClock = Clock(&display);
-  myClock.setDisplaySleepTime(20);
+  myClock.setDisplaySleepTime(10);
 }
 
 void onEspConnected(const WiFiEventStationModeConnected& event){
@@ -158,35 +159,35 @@ void enableDefaultFont(){
   display.setTextSize(1);
 }
 
-void showMainMenu(void){
-
-  myClock.disableDisplaySleep();
-
-  menuIdx = 0;
-  enableDefaultFont();
+void enableRotaryMenuInterrupt(void){
   attachInterrupt(digitalPinToInterrupt(PIN_ROTARY_IN1), checkPosition, CHANGE);
   attachInterrupt(digitalPinToInterrupt(PIN_ROTARY_IN2), checkPosition, CHANGE);
+}
+
+void disableRotaryMenuInterrupt(void){
+  detachInterrupt(PIN_ROTARY_IN1);
+  detachInterrupt(PIN_ROTARY_IN2);;
+}
+
+void showMainMenu(void){
+
+  menuIdx = 0;
+  myClock.disableDisplaySleep();
+  menu.setInputTime(millis());
+  enableRotaryMenuInterrupt();
 
   display.clearDisplay();
+  enableDefaultFont();
   printAppBar(35,3, "Dashboard");
 
-  display.setCursor(10, 16);
-  display.print("home");
-
-  display.setCursor(10, 26);
-  display.print("clock settings");
-
-  display.setCursor(10, 36);
-  display.print("wifi settings");
-
-  display.setCursor(10, 46);
-  display.print("system");
-
-  display.setCursor(10, 56);
-  display.print("display");
-
-  while (1)
-  {
+  while (true)
+  { 
+    if(menu.checkForAutoExit()) {
+      disableRotaryMenuInterrupt();
+      myClock.enableDisplaySleep();
+      display.clearDisplay();
+      break;
+    }
     switch (menuIdx) {
       case Home:
             printStringAt(1, 16, "o");
@@ -216,11 +217,9 @@ void showMainMenu(void){
             display.print("display");
 
             display.display();
-            shouldRefresh = false;
-          
+
           if(menu.checkMenuSwitch() == CLICKED){
-            detachInterrupt(PIN_ROTARY_IN1);
-            detachInterrupt(PIN_ROTARY_IN2);
+            disableRotaryMenuInterrupt();
             myClock.enableDisplaySleep();
             display.clearDisplay();
             return;
@@ -256,8 +255,6 @@ void showMainMenu(void){
             display.print("display");
 
             display.display();
-            shouldRefresh = false;
-          
         break;
 
       case WIFI_SETTING:
@@ -289,7 +286,6 @@ void showMainMenu(void){
             display.print("display");
 
             display.display();
-            shouldRefresh = false;
       
         break;
 
@@ -322,7 +318,6 @@ void showMainMenu(void){
             display.print("display");
 
             display.display();
-            shouldRefresh = false;
 
       break;
 
@@ -355,7 +350,6 @@ void showMainMenu(void){
             display.print("display");
 
             display.display();
-            shouldRefresh = false;
  
         break;
 
@@ -388,11 +382,9 @@ void showMainMenu(void){
             display.print("exit");
 
             display.display();
-            shouldRefresh = false; 
 
         if(menu.checkMenuSwitch() == CLICKED){
-            detachInterrupt(PIN_ROTARY_IN1);
-            detachInterrupt(PIN_ROTARY_IN2);
+            disableRotaryMenuInterrupt();
             display.clearDisplay();
             myClock.enableDisplaySleep();
             return;
@@ -409,17 +401,22 @@ void showClockPage(){
   while(1){
 
     char clickStatus = menu.checkMenuSwitch();
+
     if(clickStatus == CLICKED){
       myClock.displayOn();
-      myClock.enableDisplaySleep();
     }
     if(clickStatus == LONG_CLICKED){
       return;
     }
+    
+    if(myClock.isDisplayTimeOut()){
+      myClock.displayOff();
+    }
 
     count ++;
+    if(count == 30) count = 0;
     snprintf(buff, 3, "%02d", count);
-    
+
     myClock.dislayWeek(0, 0, 2, "SUN");
     myClock.displayHour(0,16,5, buff);
     myClock.displayColon(57, 30,2);
@@ -427,9 +424,11 @@ void showClockPage(){
     myClock.displaySec(102, 0, 2, buff);
     myClock.displayDate(0, 55, 1, "12 jun 2022");
     myClock.displayAmPm(112, 55, 1, true);
-    
-    //delay(1000);
+
     display.display();  
+    delay(1);
+
+    
     
   }
 }

@@ -9,11 +9,19 @@ Clock::Clock(Adafruit_SSD1306* display){
 }
 
 void Clock::displayOff(){
-     _display->ssd1306_command(SSD1306_DISPLAYOFF);
+    for(int16_t col=0; col<60; col++){
+        _display->drawLine(0, col, 127, col, BLACK);
+        _display->display();
+        delay(1);
+    }
+    //_display->ssd1306_command(SSD1306_DISPLAYOFF);
 }
 
 void Clock::displayOn(){
-    _display->ssd1306_command(SSD1306_DISPLAYON);
+    enableDisplaySleep();
+    _display->clearDisplay();
+    //_display->ssd1306_command(SSD1306_DISPLAYON); 
+    delay(10);   
 }
 
 void Clock::displaySec(int x, int y, uint8_t size, String sec){
@@ -78,24 +86,29 @@ void Clock::checkDisplaySleep(void){
     if(isEnableDisplaySleep()){
         _displaySleepCounter++;
         if(getDisplaySleepTime() == _displaySleepCounter) {
-            displayOff();
             resetDisplaySleepTimer();
-            disableDisplaySleep();
+            disableDisplaySleep();    
         }
     }
 }
 
 void Clock::enableDisplaySleep(void){
     _allowDisplaySleep = true;
+    _displayTimeOut = false;
 }
 
 void Clock::disableDisplaySleep(void){
     _allowDisplaySleep = false;
+    _displayTimeOut = true;
 }
 
-char Clock::isEnableDisplaySleep(void){
+bool Clock::isEnableDisplaySleep(void){
     if(_allowDisplaySleep)
-        return 1;
+        return true;
     else 
-        return 0;
+        return false;
+}
+
+bool Clock::isDisplayTimeOut(void){
+    return _displayTimeOut;
 }
