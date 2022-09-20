@@ -2,6 +2,8 @@
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 
+/// ntp server
+#define NTP_SERVER "pool.ntp.org"
 
 /// rotary
 #define PIN_ROTARY_IN1 D5
