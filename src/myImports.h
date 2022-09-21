@@ -24,7 +24,7 @@ TwoWire wire;
 
 /// ntp
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, NTP_SERVER);
+NTPClient timeClient(ntpUDP, NTP_SERVER, 0, 60000);
 
 /// ticker 
 Ticker ledTicker;

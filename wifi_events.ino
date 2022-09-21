@@ -18,12 +18,13 @@ void setup()
     
     initLcd();
     intiPins();
+    initNtpClient();
     initWifiModule();
     
     /// start ticker
     ledTicker.attach(1, blinkLED);
 
-    display.clearDisplay();
+    ui.clearScreen();
 }
 
 IRAM_ATTR void checkPosition()
@@ -31,8 +32,6 @@ IRAM_ATTR void checkPosition()
   menuIdx = menu.getMenuIndex();
   menu.setInputTime(millis());
 }
-int count = 0;
-char buff[3];
 
 void loop()
 { 
@@ -62,10 +61,10 @@ void initLcd(void){
       Serial.println(F("SSD1306 allocation failed"));
       for(;;);
   }
-
   display.clearDisplay();
+  
   ui = Ui(&display);
-  ui.setDisplaySleepTime(5);
+  ui.setDisplaySleepTime(10);
   ui.setContrast(1);
 }
 
@@ -80,12 +79,12 @@ void initWifiModule(void){
     wifiManger.autoConnect("Wifi-Clock");
     ui.printStringAt(0,0 , "Connected to " + wifiManger.getWiFiSSID());
     delay(3000);
-
 }
 
 void initNtpClient(void){
   timeClient.begin();
-  //timeClient.setTimeOffset()
+  timeClient.setTimeOffset(16200);
+  timeClient.setUpdateInterval(60000);
 }
 
 void onEspConnected(const WiFiEventStationModeConnected& event){
@@ -312,31 +311,26 @@ void showClockPage(){
   while(1){
 
     char clickStatus = menu.checkMenuSwitch();
-
     if(clickStatus == CLICKED){
       ui.displayOn();
     }
     if(clickStatus == LONG_CLICKED){
       return;
     }
-    
     if(ui.isDisplayTimeOut()){
       ui.displayOff();
     }
 
-    count ++;
-    if(count == 30) count = 0;
-    snprintf(buff, 3, "%02d", count);
-
-    ui.dislayWeek(0, 0, 2, "SUN");
-    ui.displayHour(0,16,5, buff);
-    ui.displayColon(57, 30,2);
-    ui.displayMin(68,16,5,buff);
-    ui.displaySec(102, 0, 2, buff);
-    ui.displayDate(0, 55, 1, "12 jun 2022");
-    ui.displayAmPm(112, 55, 1, true);
-
-    display.display();  
-    delay(1);
+    timeClient.update();
+    time_t epochTime = timeClient.getEpochTime();
+    String timeFormat = timeClient.getFormattedTime();
+    
+    ui.dislayWeek(0, 0, 2, timeClient.getDay());
+    ui.displayHour(0,22,4, timeFormat.substring(0, 2));
+    ui.displayColon(44, 30,3);
+    ui.displayMin(56,22,4,timeFormat.substring(3, 5));
+    ui.displaySec(102, 35, 2, timeFormat.substring(6, 8));
+    ui.displayDate(0, 55, 1, ui.epochToDate(epochTime));
+    ui.updateScreen();  
   }
 }

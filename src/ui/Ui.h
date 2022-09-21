@@ -14,9 +14,10 @@ class Ui{
         void displayMin(int x, int y, uint8_t size, String min);
         void displayHour(int x, int y, uint8_t size, String hour);
         void displayColon(int x, int y, uint8_t size);
-        void dislayWeek(int x, int y, uint8_t size, String week);
+        void dislayWeek(int x, int y, uint8_t size, int week);
         void displayDate(int x, int y, uint8_t size, String date);
         void displayAmPm(int x, int y, uint8_t size, boolean isAM);
+        String epochToDate(time_t epoch);
 
 
         /// methods for control ssd1306 sleep and wakup
@@ -48,6 +49,12 @@ class Ui{
         u_int8_t _displaySleepCounter = 0;
         bool _allowDisplaySleep = true;
         bool _displayTimeOut = false;
+
+        //Week Days
+        String _weekDays[7]={"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+
+        //Month names
+        String months[12]={"Jan", "Feb", "Mar", "Apr", "May", "June", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 };
 
 

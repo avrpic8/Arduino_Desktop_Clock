@@ -33,10 +33,10 @@ void Ui::displayColon(int x, int y, uint8_t size){
      _display->print(":");
 }
 
-void Ui::dislayWeek(int x, int y, uint8_t size, String week){
+void Ui::dislayWeek(int x, int y, uint8_t size, int week){
     _display->setTextSize(size);
     _display->setCursor(x, y);
-    _display->print(week);
+    _display->print(_weekDays[week]);
 }
 
 void Ui::displayDate(int x, int y, uint8_t size, String date){
@@ -53,6 +53,16 @@ void Ui::displayAmPm(int x, int y, uint8_t size, boolean isAM){
     }else{
         _display->print("PM");
     }    
+}
+
+String Ui::epochToDate(time_t epoch){
+    struct tm *ptm = gmtime ((time_t *)&epoch); 
+    int monthDay     = ptm->tm_mday;
+    int currentMonth = ptm->tm_mon + 1;
+    String currentMonthName = months[currentMonth-1];
+    int currentYear  = ptm->tm_year + 1900;
+    String currentDate =  String(monthDay) +  " " + String(currentMonthName) +  " " + String(currentYear);
+    return currentDate;
 }
 
 
