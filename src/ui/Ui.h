@@ -10,9 +10,9 @@ class Ui{
         Ui(Adafruit_SSD1306* display);
 
         /// methods for display clock
-        void displaySec(int x, int y, uint8_t size, String sec);
-        void displayMin(int x, int y, uint8_t size, String min);
-        void displayHour(int x, int y, uint8_t size, String hour);
+        void displaySec(int x, int y, uint8_t size, int sec);
+        void displayMin(int x, int y, uint8_t size, int min);
+        void displayHour(int x, int y, uint8_t size, int hour);
         void displayColon(int x, int y, uint8_t size);
         void dislayWeek(int x, int y, uint8_t size, int week);
         void displayDate(int x, int y, uint8_t size, String date);

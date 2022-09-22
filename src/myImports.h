@@ -8,6 +8,7 @@
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <ErriezDS1307.h>
 #include <Ticker.h>
 #include <stdio.h>
 #include "menu/MyMenu.h"
@@ -22,9 +23,6 @@ WiFiEventHandler disconnectedEvent;
 Adafruit_SSD1306 display;
 TwoWire wire;
 
-/// ntp
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, NTP_SERVER, 0, 60000);
 
 /// ticker 
 Ticker ledTicker;
@@ -36,4 +34,13 @@ int menuIdx = 0;
 
 /// clock
 Ui ui;
+
+/// ntp
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, NTP_SERVER, 0, 60000);
+
+
+/// rtc
+ErriezDS1307 rtc;
+
 

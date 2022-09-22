@@ -6,7 +6,12 @@ void onEspConnected(const WiFiEventStationModeConnected& event);
 void onEspDisconnected(const WiFiEventStationModeDisconnected& event);
 void blinkLED();
 void intiPins(void);
+void initTwi(void);
+void initLcd(void);
 void initWifiModule(void);
+void initNtpClient(void);
+void initRtc(void);
+void updateRTC(void);
 void enableRotaryMenuInterrupt(void);
 void disableRotaryMenuInterrupt(void);
 void showMainMenu(void);
@@ -16,10 +21,12 @@ void setup()
 {
     Serial.begin(115200);
     
-    initLcd();
     intiPins();
-    initNtpClient();
+    initTwi();
+    initLcd();
     initWifiModule();
+    initNtpClient();
+    initRtc();
     
     /// start ticker
     ledTicker.attach(1, blinkLED);
@@ -52,9 +59,12 @@ void intiPins(void){
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
-void initLcd(void){
+void initTwi(void){
   wire.begin(SDA,SCL);
   wire.setClock(1000000);
+}
+
+void initLcd(void){
   display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &wire, -1);
 
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
@@ -64,7 +74,7 @@ void initLcd(void){
   display.clearDisplay();
   
   ui = Ui(&display);
-  ui.setDisplaySleepTime(10);
+  ui.setDisplaySleepTime(20);
   ui.setContrast(1);
 }
 
@@ -78,13 +88,41 @@ void initWifiModule(void){
     //wifiManger.erase(true);
     wifiManger.autoConnect("Wifi-Clock");
     ui.printStringAt(0,0 , "Connected to " + wifiManger.getWiFiSSID());
-    delay(3000);
+    delay(2000);
 }
 
 void initNtpClient(void){
+  ui.clearScreen();
+  ui.printStringAt(0, 0, "Updating NTP");
   timeClient.begin();
-  timeClient.setTimeOffset(16200);
+  timeClient.setTimeOffset(12600);
   timeClient.setUpdateInterval(60000);
+
+  ui.clearScreen();
+  ui.printStringAt(0, 0, "Update success");
+  delay(2000);
+}
+
+void initRtc(void){
+  ui.clearScreen();
+  while (!rtc.begin())
+  {
+    Serial.println("RTC not found");
+    delay(1000);
+  }
+
+  ui.printStringAt(0, 0, "Setting RTC");
+  timeClient.update();
+  if(rtc.setEpoch(timeClient.getEpochTime())){
+    Serial.println(F("Set time failed"));
+  }
+  ui.clearScreen();
+  ui.printStringAt(0, 0, "RTC set success");
+  delay(2000);
+}
+
+void updateRTC(void){
+
 }
 
 void onEspConnected(const WiFiEventStationModeConnected& event){
@@ -310,6 +348,10 @@ void showClockPage(){
 
   while(1){
 
+    /// get time from ds1307 rtc
+    uint8_t hour, min, sec;
+    rtc.getTime(&hour, &min, &sec);
+
     char clickStatus = menu.checkMenuSwitch();
     if(clickStatus == CLICKED){
       ui.displayOn();
@@ -321,16 +363,12 @@ void showClockPage(){
       ui.displayOff();
     }
 
-    timeClient.update();
-    time_t epochTime = timeClient.getEpochTime();
-    String timeFormat = timeClient.getFormattedTime();
-    
     ui.dislayWeek(0, 0, 2, timeClient.getDay());
-    ui.displayHour(0,22,4, timeFormat.substring(0, 2));
+    ui.displayHour(0,22,4, hour);
     ui.displayColon(44, 30,3);
-    ui.displayMin(56,22,4,timeFormat.substring(3, 5));
-    ui.displaySec(102, 35, 2, timeFormat.substring(6, 8));
-    ui.displayDate(0, 55, 1, ui.epochToDate(epochTime));
+    ui.displayMin(56,22,4, min);
+    ui.displaySec(102, 35, 2, sec);
+    ui.displayDate(0, 55, 1, ui.epochToDate(rtc.getEpoch()));
     ui.updateScreen();  
   }
 }

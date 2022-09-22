@@ -9,22 +9,28 @@ Ui::Ui(Adafruit_SSD1306* display){
 }
 
 /// methods for display clock
-void Ui::displaySec(int x, int y, uint8_t size, String sec){
+void Ui::displaySec(int x, int y, uint8_t size, int sec){
+    char buff[2];
+    sprintf(buff, "%02d", sec);
     _display->setTextSize(size);
     _display->setCursor(x, y);
-    _display->print(sec);
+    _display->print(buff);
 }
 
-void Ui::displayMin(int x, int y, uint8_t size, String min){
+void Ui::displayMin(int x, int y, uint8_t size, int min){
+    char buff[2];
+    sprintf(buff, "%02d", min);
     _display->setTextSize(size);
     _display->setCursor(x, y);
-    _display->print(min);    
+    _display->print(buff);    
 }
 
-void Ui::displayHour(int x, int y, uint8_t size, String hour){
+void Ui::displayHour(int x, int y, uint8_t size, int hour){
+    char buff[2];
+    sprintf(buff, "%02d", hour);
     _display->setTextSize(size);
     _display->setCursor(x, y);
-    _display->print(hour);     
+    _display->print(buff);     
 }
 
 void Ui::displayColon(int x, int y, uint8_t size){
