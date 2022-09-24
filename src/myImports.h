@@ -24,12 +24,17 @@ Adafruit_SSD1306 display;
 TwoWire wire;
 
 
+/// wifi connect manager
+WiFiManager wifiManger;
+
+
 /// ticker 
 Ticker ledTicker;
 bool conectedFlag = false;
 
 /// menu selector
 MyMenu menu(PIN_ROTARY_IN1, PIN_ROTARY_IN2, PIN_SW, 10);
+
 int menuIdx = 0;
 
 /// clock
@@ -42,5 +47,5 @@ NTPClient timeClient(ntpUDP, NTP_SERVER, 0, 60000);
 
 /// rtc
 ErriezDS1307 rtc;
-
-
+uint32 rtcUpdateCounter = 0;
+char generalCounter = 0;

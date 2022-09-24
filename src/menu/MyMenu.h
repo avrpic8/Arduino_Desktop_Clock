@@ -8,7 +8,8 @@ class MyMenu{
     public:
         MyMenu(int pina, int pinb, int rotarySW, int exitTimeMenu);
         int getMenuIndex(void);
-        void setMenuIndex(int index);
+        void setMaxMargin(int maxMargin);
+        int getMaxMargin(void);
         int checkMenuSwitch();
         int getMenuRpm();
         bool checkForAutoExit(void);
@@ -16,6 +17,7 @@ class MyMenu{
 
     private:
         int _menuIndex = 0;
+        int _maxMargin = 0;
         int _pin1, _pin2, _rotarySW;
         u_int8_t _exitTime = 0;
         int _inputTime = 0;

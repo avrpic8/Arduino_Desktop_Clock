@@ -8,14 +8,16 @@ void blinkLED();
 void intiPins(void);
 void initTwi(void);
 void initLcd(void);
+void tryConnectToWifi(void);
 void initWifiModule(void);
-void initNtpClient(void);
+bool initNtpClient(void);
 void initRtc(void);
 void updateRTC(void);
 void enableRotaryMenuInterrupt(void);
 void disableRotaryMenuInterrupt(void);
 void showMainMenu(void);
 void showClockPage(void);
+void showClockSetting(void);
 
 void setup()
 {
@@ -31,11 +33,13 @@ void setup()
     /// start ticker
     ledTicker.attach(1, blinkLED);
 
+    WiFi.mode(WIFI_OFF);
     ui.clearScreen();
 }
 
 IRAM_ATTR void checkPosition()
 {
+
   menuIdx = menu.getMenuIndex();
   menu.setInputTime(millis());
 }
@@ -53,6 +57,9 @@ void blinkLED(){
   int state = digitalRead(LED_BUILTIN);
   digitalWrite(LED_BUILTIN, !state);
   ui.checkDisplaySleep();
+
+  /// RTC update timer
+  rtcUpdateCounter ++;
 }
 
 void intiPins(void){
@@ -74,33 +81,49 @@ void initLcd(void){
   display.clearDisplay();
   
   ui = Ui(&display);
-  ui.setDisplaySleepTime(20);
+  ui.setDisplaySleepTime(30);
   ui.setContrast(1);
+}
+
+void tryConnectToWifi(void){
+  ui.printStringAt(0,0 , "Connecting...");
+  if(!wifiManger.autoConnect("Wifi-Clock")){
+    ui.clearScreen(); 
+    ui.printStringAt(0,0 , "Unable to connected");
+    delay(2000);
+    return;
+  }
+  ui.clearScreen(); 
+  ui.printStringAt(0,0 , "Connected to " + wifiManger.getWiFiSSID());
+  delay(2000);    
 }
 
 void initWifiModule(void){
     /// register events
     connectedEvent = WiFi.onStationModeConnected(&onEspConnected);
     disconnectedEvent = WiFi.onStationModeDisconnected(&onEspDisconnected);
-
-    ui.printStringAt(0,0 , "Connecting...");
-    WiFiManager wifiManger;
-    //wifiManger.erase(true);
-    wifiManger.autoConnect("Wifi-Clock");
-    ui.printStringAt(0,0 , "Connected to " + wifiManger.getWiFiSSID());
-    delay(2000);
+    tryConnectToWifi();      
 }
 
-void initNtpClient(void){
+bool initNtpClient(void){
   ui.clearScreen();
   ui.printStringAt(0, 0, "Updating NTP");
   timeClient.begin();
   timeClient.setTimeOffset(12600);
-  timeClient.setUpdateInterval(60000);
+  timeClient.setUpdateInterval(0);
 
-  ui.clearScreen();
-  ui.printStringAt(0, 0, "Update success");
-  delay(2000);
+  if(!timeClient.update()){
+    ui.clearScreen();
+    ui.printStringAt(0, 0, "NTP update failed");
+    delay(2000);
+    return false;
+  }else{
+    ui.clearScreen();
+    ui.printStringAt(0, 0, "NTP update success");   
+    delay(2000);
+    return true; 
+  }
+  
 }
 
 void initRtc(void){
@@ -112,17 +135,37 @@ void initRtc(void){
   }
 
   ui.printStringAt(0, 0, "Setting RTC");
-  timeClient.update();
-  if(rtc.setEpoch(timeClient.getEpochTime())){
-    Serial.println(F("Set time failed"));
+  if(!rtc.setEpoch(timeClient.getEpochTime())){
+    ui.clearScreen();
+    ui.printStringAt(0, 0, "RTC not found");
+  }else{
+    ui.clearScreen();
+    ui.printStringAt(0, 0, "RTC set success");  
   }
-  ui.clearScreen();
-  ui.printStringAt(0, 0, "RTC set success");
   delay(2000);
 }
 
 void updateRTC(void){
-
+  if(rtcUpdateCounter == 20){
+    ui.clearScreen();
+    tryConnectToWifi();
+    if(initNtpClient()){
+      ui.clearScreen();
+      rtc.setEpoch(timeClient.getEpochTime());  
+      WiFi.mode(WIFI_OFF);
+      ui.printStringAt(0, 0, "Wifi turned off"); 
+      delay(2000);
+    }else{
+      ui.clearScreen();   
+      ui.printStringAt(0, 0, "RTC update failed");
+      ui.clearScreen();  
+      WiFi.mode(WIFI_OFF);
+      ui.printStringAt(0, 0, "Wifi turned off"); 
+      delay(2000);
+    }
+    rtcUpdateCounter = 0;
+    ui.clearScreen();
+  }
 }
 
 void onEspConnected(const WiFiEventStationModeConnected& event){
@@ -149,9 +192,10 @@ void disableRotaryMenuInterrupt(void){
 
 void showMainMenu(void){
 
-  menuIdx = 0;
   ui.disableDisplaySleep();
+  menuIdx = 0;
   menu.setInputTime(millis());
+  menu.setMaxMargin(5);
   enableRotaryMenuInterrupt();
 
   ui.clearScreen();
@@ -178,7 +222,7 @@ void showMainMenu(void){
             ui.printStringAt(10, 16, "home", false);
 
             display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "clock settings", false);
+            ui.printStringAt(10, 26, "clock", false);
 
             display.fillRect(10, 36, 100, 8, BLACK);
             ui.printStringAt(10, 36, "wifi settings", false);
@@ -211,7 +255,7 @@ void showMainMenu(void){
             ui.printStringAt(10, 16, "home", false);
 
             display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "clock settings", false);
+            ui.printStringAt(10, 26, "clock", false);
 
             display.fillRect(10, 36, 100, 8, BLACK);
             ui.printStringAt(10, 36, "wifi settings", false);
@@ -223,6 +267,7 @@ void showMainMenu(void){
             ui.printStringAt(10, 56, "display", false);
 
             ui.updateScreen();
+            if(menu.checkMenuSwitch() == CLICKED) showClockSetting();
         break;
 
       case WIFI_SETTING:
@@ -237,7 +282,7 @@ void showMainMenu(void){
             ui.printStringAt(10, 16, "home", false);
 
             display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "clock settings", false);
+            ui.printStringAt(10, 26, "clock", false);
 
             display.fillRect(10, 36, 100, 8, BLACK);
             ui.printStringAt(10, 36, "wifi settings", false);
@@ -264,7 +309,7 @@ void showMainMenu(void){
             ui.printStringAt(10, 16, "home", false);
 
             display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "clock settings", false);
+            ui.printStringAt(10, 26, "clock", false);
 
             display.fillRect(10, 36, 100, 8, BLACK);
             ui.printStringAt(10, 36, "wifi settings", false);
@@ -291,7 +336,7 @@ void showMainMenu(void){
             ui.printStringAt(10, 16, "home", false);
 
             display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "clock settings", false);
+            ui.printStringAt(10, 26, "clock", false);
 
             display.fillRect(10, 36, 100, 8, BLACK);
             ui.printStringAt(10, 36, "wifi settings", false);
@@ -315,7 +360,7 @@ void showMainMenu(void){
             ui.printStringAt(1, 56, "o");
 
             display.fillRect(10, 16, 100, 8, BLACK);
-            ui.printStringAt(10, 16, "clock settings", false);
+            ui.printStringAt(10, 16, "clock", false);
 
             display.fillRect(10, 26, 100, 8, BLACK);
             ui.printStringAt(10, 26, "wifi settings", false);
@@ -348,6 +393,7 @@ void showClockPage(){
 
   while(1){
 
+    updateRTC();
     /// get time from ds1307 rtc
     uint8_t hour, min, sec;
     rtc.getTime(&hour, &min, &sec);
@@ -370,5 +416,55 @@ void showClockPage(){
     ui.displaySec(102, 35, 2, sec);
     ui.displayDate(0, 55, 1, ui.epochToDate(rtc.getEpoch()));
     ui.updateScreen();  
+  }
+}
+
+void showClockSetting(void){
+  ui.enableDisplaySleep();
+  ui.clearScreen();
+  menuIdx = 0;
+
+  /// get time from ds1307 rtc
+  uint8_t hour, min, sec;
+  rtc.getTime(&hour, &min, &sec);
+  ui.displayHour(0,22,4, hour);
+  ui.displayColon(44, 30,3);
+  ui.displayMin(56,22,4, min);
+  ui.displaySec(102, 35, 2, sec);
+
+  display.fillTriangle(10, 3, 30, 3, 20, 15, WHITE);
+
+  while(true){
+    switch (menuIdx)
+    {
+    case 0:
+      menu.setMaxMargin(23);
+      while (true)
+      {
+        hour =  menuIdx;
+        ui.displayHour(0,22,4, hour);
+        ui.updateScreen();
+        if(menu.checkMenuSwitch() == CLICKED) {
+          menu.setMaxMargin(59);  
+          break;
+        }
+      }
+      break;
+
+    case 1:
+      display.fillTriangle(50, 3, 70, 3, 20, 15, WHITE);
+      while (true)
+      {
+        min =  menuIdx;
+        ui.displayMin(0,22,4, min);
+        ui.updateScreen();
+        if(menu.checkMenuSwitch() == CLICKED) {
+          menu.setMaxMargin(59);  
+          break;
+        }
+      }
+      break;  
+
+    }
   }
 }

@@ -31,8 +31,8 @@ int MyMenu::readRotEnc(){
     return reResult;
 }
 
-void MyMenu::setMenuIndex(int index){
-    this->_menuIndex = index;
+void MyMenu::setMaxMargin(int index){
+    this->_maxMargin = index;
 }
 
 int MyMenu::getMenuIndex(void) {
@@ -45,8 +45,8 @@ int MyMenu::getMenuIndex(void) {
       _menuIndex = 0;
   } else if (reResult > 0) {      // up
     _menuIndex++;
-    if(_menuIndex > 5)
-        _menuIndex = 5;
+    if(_menuIndex > _maxMargin)
+        _menuIndex = _maxMargin;
   }
   return _menuIndex;
 } 
