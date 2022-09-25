@@ -48,4 +48,3 @@ NTPClient timeClient(ntpUDP, NTP_SERVER, 0, 60000);
 /// rtc
 ErriezDS1307 rtc;
 uint32 rtcUpdateCounter = 0;
-char generalCounter = 0;

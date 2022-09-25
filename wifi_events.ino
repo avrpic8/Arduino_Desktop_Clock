@@ -18,6 +18,9 @@ void disableRotaryMenuInterrupt(void);
 void showMainMenu(void);
 void showClockPage(void);
 void showClockSetting(void);
+void showClockSettingTitles(void);
+void timeSet(void);
+void dateSet(void);
 
 void setup()
 {
@@ -39,7 +42,6 @@ void setup()
 
 IRAM_ATTR void checkPosition()
 {
-
   menuIdx = menu.getMenuIndex();
   menu.setInputTime(millis());
 }
@@ -57,9 +59,6 @@ void blinkLED(){
   int state = digitalRead(LED_BUILTIN);
   digitalWrite(LED_BUILTIN, !state);
   ui.checkDisplaySleep();
-
-  /// RTC update timer
-  rtcUpdateCounter ++;
 }
 
 void intiPins(void){
@@ -200,10 +199,10 @@ void showMainMenu(void){
 
   ui.clearScreen();
   ui.enableDefaultFont();
-  ui.printAppBar(35,3, "Dashboard");
 
   while (true)
   { 
+    ui.printAppBar(35,3, "Dashboard");
     if(menu.checkForAutoExit()) {
       disableRotaryMenuInterrupt();
       ui.enableDisplaySleep();
@@ -393,7 +392,7 @@ void showClockPage(){
 
   while(1){
 
-    updateRTC();
+    ///updateRTC();
     /// get time from ds1307 rtc
     uint8_t hour, min, sec;
     rtc.getTime(&hour, &min, &sec);
@@ -420,51 +419,138 @@ void showClockPage(){
 }
 
 void showClockSetting(void){
-  ui.enableDisplaySleep();
   ui.clearScreen();
+  menu.setMaxMargin(3);
+  menuIdx = 0;
+
+  while(true){
+    switch (menuIdx){
+    case 0:
+      showClockSettingTitles();
+      ui.printStringAt(1, 16, "o");
+      ui.printStringAt(1, 26, " ");
+      ui.clearDisplayAt(1, 36, " ");
+      ui.clearDisplayAt(1, 46, " ");
+      ui.updateScreen();
+      if(menu.checkMenuSwitch() == CLICKED) timeSet();
+      break;
+    
+    case 1:
+      showClockSettingTitles();
+      ui.printStringAt(1, 16, " ");
+      ui.clearDisplayAt(1, 26, "o");
+      ui.clearDisplayAt(1, 36, " ");
+      ui.clearDisplayAt(1, 46, " ");
+      ui.updateScreen();
+      if(menu.checkMenuSwitch() == CLICKED) dateSet();
+      break;  
+
+    case 2:
+      showClockSettingTitles();
+      ui.printStringAt(1, 16, " ");
+      ui.clearDisplayAt(1, 26, " ");
+      ui.clearDisplayAt(1, 36, "o");
+      ui.clearDisplayAt(1, 46, " ");
+      ui.updateScreen();
+      break;  
+    
+    case 3:
+      showClockSettingTitles();
+      ui.printStringAt(1, 16, " ");
+      ui.clearDisplayAt(1, 26, " ");
+      ui.clearDisplayAt(1, 36, " ");
+      ui.clearDisplayAt(1, 46, "o");
+      ui.updateScreen();
+      if(menu.checkMenuSwitch() == CLICKED){
+        menu.setMaxMargin(5);
+        menuIdx = 1;  
+        ui.clearScreen();
+        return;
+      }
+      break;  
+    }
+  }
+}
+
+void showClockSettingTitles(void){
+  ui.printAppBar(35,3, "Clock Menu");
+  ui.printStringAt(10, 16, "time", false);
+  ui.printStringAt(10, 26, "date", false);
+  ui.printStringAt(10, 36, "alarm", false);
+  ui.printStringAt(10, 46, "exit", false);
+}
+
+void timeSet(void){
+  ui.clearScreen();
+  menu.setMaxMargin(2);
   menuIdx = 0;
 
   /// get time from ds1307 rtc
   uint8_t hour, min, sec;
   rtc.getTime(&hour, &min, &sec);
-  ui.displayHour(0,22,4, hour);
-  ui.displayColon(44, 30,3);
-  ui.displayMin(56,22,4, min);
+  ui.displayHour(0,30,3, hour);
+  ui.displayColon(35, 30,3);
+  ui.displayMin(56,30,3, min);
   ui.displaySec(102, 35, 2, sec);
-
-  display.fillTriangle(10, 3, 30, 3, 20, 15, WHITE);
-
   while(true){
     switch (menuIdx)
     {
     case 0:
+      display.fillTriangle(10, 3, 30, 3, 20, 15, WHITE);
       menu.setMaxMargin(23);
       while (true)
       {
-        hour =  menuIdx;
-        ui.displayHour(0,22,4, hour);
-        ui.updateScreen();
-        if(menu.checkMenuSwitch() == CLICKED) {
-          menu.setMaxMargin(59);  
+        hour = menuIdx;
+        ui.displayHour(0,30,3, hour); 
+        if(menu.checkMenuSwitch() == CLICKED){
+          menuIdx = 1;
           break;
-        }
+        }  
+        ui.updateScreen(); 
+      }
+      break;
+    
+    case 1:
+      display.fillRect(10, 3, 25, 15, BLACK);
+      display.fillRect(107, 3, 25, 15, BLACK);
+      display.fillTriangle(60, 3, 80, 3, 70, 15, WHITE);
+      menu.setMaxMargin(59);
+      while (true)
+      {
+        min = menuIdx;
+        ui.displayMin(56,30,3, min); 
+        if(menu.checkMenuSwitch() == CLICKED){
+          menuIdx = 2;
+          break;
+        }   
+        ui.updateScreen();
       }
       break;
 
-    case 1:
-      display.fillTriangle(50, 3, 70, 3, 20, 15, WHITE);
+    case 2:
+      display.fillRect(10, 3, 25, 15, BLACK);
+      display.fillRect(60, 3, 25, 15, BLACK);
+      display.fillTriangle(107, 3, 127, 3, 117, 15, WHITE);
+      menu.setMaxMargin(59);
       while (true)
       {
-        min =  menuIdx;
-        ui.displayMin(0,22,4, min);
+        sec = menuIdx;
+        ui.displaySec(102, 35, 2, sec); 
+        if(menu.checkMenuSwitch() == CLICKED){
+          menu.setMaxMargin(3);
+          menuIdx = 0;
+          ui.clearScreen();
+          ui.enableDefaultFont();
+          rtc.setTime(hour, min, sec);
+          return;
+        }   
         ui.updateScreen();
-        if(menu.checkMenuSwitch() == CLICKED) {
-          menu.setMaxMargin(59);  
-          break;
-        }
       }
-      break;  
-
+      break;
     }
   }
+}
+
+void dateSet(void){
+
 }
