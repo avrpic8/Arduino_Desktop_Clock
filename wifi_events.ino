@@ -29,8 +29,8 @@ void setup()
     intiPins();
     initTwi();
     initLcd();
-    initWifiModule();
-    initNtpClient();
+    //initWifiModule();
+    //initNtpClient();
     initRtc();
     
     /// start ticker
@@ -394,8 +394,9 @@ void showClockPage(){
 
     ///updateRTC();
     /// get time from ds1307 rtc
-    uint8_t hour, min, sec;
-    rtc.getTime(&hour, &min, &sec);
+    uint16 year;
+    uint8_t hour, min, sec, temp, week;
+    rtc.getDateTime(&hour, &min, &sec, &temp, &temp, &year, &week);
 
     char clickStatus = menu.checkMenuSwitch();
     if(clickStatus == CLICKED){
@@ -408,7 +409,7 @@ void showClockPage(){
       ui.displayOff();
     }
 
-    ui.dislayWeek(0, 0, 2, timeClient.getDay());
+    ui.dislayWeek(0, 0, 2, week);
     ui.displayHour(0,22,4, hour);
     ui.displayColon(44, 30,3);
     ui.displayMin(56,22,4, min);
@@ -541,7 +542,7 @@ void timeSet(void){
           menuIdx = 0;
           ui.clearScreen();
           ui.enableDefaultFont();
-          rtc.setTime(hour, min, sec);
+          while(!rtc.setTime(hour, min, sec));
           return;
         }   
         ui.updateScreen();
@@ -552,5 +553,92 @@ void timeSet(void){
 }
 
 void dateSet(void){
+  ui.clearScreen();
+  menu.setMaxMargin(3);
+  menuIdx = 0;  
 
+  ui.printNumberAt(0, 25, 2, 12);
+  ui.printStringAt(32, 25, 2, "Jun");
+  ui.printStringAt(80, 25, 2, "2022");
+  ui.printStringAt(32, 47, 2, "Wed");
+
+  u_int8_t day, month, week;
+  u_char year;
+
+  while (true)
+  {
+    switch (menuIdx)
+    {
+    case 0:
+      display.fillTriangle(5, 3, 25, 3, 15, 15, WHITE);
+      menu.setMaxMargin(31);
+      menuIdx = 1;
+      while (true)
+      {
+        day = menuIdx;
+        if(menu.checkMenuSwitch() == CLICKED){
+          menuIdx = 1;
+          break;
+        } 
+        ui.printNumberAt(0, 25, 2, menuIdx);
+        ui.updateScreen();
+      }
+      break;
+
+    case 1:
+      display.fillTriangle(42, 3, 62, 3, 52, 15, WHITE);
+      display.fillRect(5, 3 , 25, 15, BLACK);
+      menu.setMaxMargin(11);
+      menuIdx = 1;
+      while (true)
+      {
+        month = menuIdx + 1;
+        if(menu.checkMenuSwitch() == CLICKED){
+          menuIdx = 2;
+          break;
+        }  
+        ui.displayMonth(32, 25, 2, menuIdx);
+        ui.updateScreen();
+      }
+      break;  
+
+    case 2:
+      display.fillTriangle(90, 3, 110, 3, 100, 15, WHITE);
+      display.fillRect(42, 3 , 25, 15, BLACK);
+      menu.setMaxMargin(30);
+      menuIdx = 22;
+      while (true)
+      {
+        year = 2000 + menuIdx;
+        if(menu.checkMenuSwitch() == CLICKED){
+          menuIdx = 3;
+          break;
+        }  
+        ui.printNumberAt(80, 25, 2, 2000 + menuIdx, 4);
+        ui.updateScreen();   
+      }
+      break;
+
+    case 3:
+      display.fillTriangle(10, 43, 10, 60, 20, 51, WHITE);
+      display.fillRect(90, 3 , 25, 15, BLACK);
+      menu.setMaxMargin(6);
+      menuIdx = 0;
+      while (true)
+      {
+        week = menuIdx;
+        if(menu.checkMenuSwitch() == CLICKED){
+          menu.setMaxMargin(3);
+          menuIdx = 0;
+          ui.clearScreen();
+          ui.enableDefaultFont();
+          while (!rtc.setDate(day, month, year-4, week));
+          return;
+        } 
+        ui.displayWeek(32, 47, 2, menuIdx);
+        ui.updateScreen();  
+      }
+      break; 
+    }
+  }  
 }

@@ -61,11 +61,23 @@ void Ui::displayAmPm(int x, int y, uint8_t size, boolean isAM){
     }    
 }
 
+void Ui::displayMonth(int x, int y, uint8_t size, int num){
+    _display->setCursor(x, y);
+    _display->setTextSize(size);
+    _display->print(_months[num]);    
+}
+
+void Ui::displayWeek(int x, int y, uint8_t size, int num){
+    _display->setCursor(x, y);
+    _display->setTextSize(size);
+    _display->print(_weekDays[num]);     
+}
+
 String Ui::epochToDate(time_t epoch){
     struct tm *ptm = gmtime ((time_t *)&epoch); 
     int monthDay     = ptm->tm_mday;
     int currentMonth = ptm->tm_mon + 1;
-    String currentMonthName = months[currentMonth-1];
+    String currentMonthName = _months[currentMonth-1];
     int currentYear  = ptm->tm_year + 1900;
     String currentDate =  String(monthDay) +  " " + String(currentMonthName) +  " " + String(currentYear);
     return currentDate;
@@ -173,6 +185,29 @@ void Ui::printStringAt(int x, int y, String message, bool update){
     _display->print(message); 
     if(update)
         _display->display();     
+}
+
+void Ui::printStringAt(int x, int y, int textSize, String message){
+    _display->setTextSize(textSize);
+    _display->setTextColor(WHITE,BLACK);
+    _display->setCursor(x, y);
+    _display->print(message);    
+}
+
+void Ui::printNumberAt(int x, int y, int size, int num){
+    char buff[2];
+    sprintf(buff, "%02d", num);
+    _display->setTextSize(size);
+    _display->setCursor(x, y);
+    _display->print(buff);         
+}
+
+void Ui::printNumberAt(int x, int y, int size, int num, int lenght){
+    char buff[lenght];
+    sprintf(buff, "%02d", num);
+    _display->setTextSize(size);
+    _display->setCursor(x, y);
+    _display->print(buff);             
 }
 
 void Ui::printAppBar(int x, int y, String title){
