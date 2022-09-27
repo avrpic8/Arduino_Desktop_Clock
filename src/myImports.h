@@ -32,13 +32,15 @@ WiFiManager wifiManger;
 Ticker ledTicker;
 bool conectedFlag = false;
 
+
 /// menu selector
 MyMenu menu(PIN_ROTARY_IN1, PIN_ROTARY_IN2, PIN_SW, 10);
-
 int menuIdx = 0;
 
-/// clock
+
+/// ui manager
 Ui ui;
+
 
 /// ntp
 WiFiUDP ntpUDP;
