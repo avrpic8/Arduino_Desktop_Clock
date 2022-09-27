@@ -14,10 +14,9 @@ class Ui{
         void displayMin(int x, int y, uint8_t size, int min);
         void displayHour(int x, int y, uint8_t size, int hour);
         void displayColon(int x, int y, uint8_t size);
-        void dislayWeek(int x, int y, uint8_t size, int week);
+        void displayWeek(int x, int y, uint8_t size, int week);
         void displayDate(int x, int y, uint8_t size, String date);
         void displayMonth(int x, int y, uint8_t size, int num);
-        void displayWeek(int x, int y, uint8_t size, int num);
         void displayAmPm(int x, int y, uint8_t size, boolean isAM);
         String epochToDate(time_t epoch);
 
@@ -45,6 +44,8 @@ class Ui{
         void printNumberAt(int x, int y, int size, int num);
         void printNumberAt(int x, int y, int size, int num, int lenght);
         void printAppBar(int x, int y, String title);
+        void showBatteryPercentage(char value);
+        void showTemprature(int x, int y, int size, char value);
         void enableDefaultFont();
         void setContrast(uint8_t value);
 

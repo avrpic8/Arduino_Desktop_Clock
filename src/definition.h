@@ -2,6 +2,9 @@
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 
+/// ADC pins
+#define ANALOG_PIN A0
+
 /// ntp server
 #define NTP_SERVER "pool.ntp.org"
 

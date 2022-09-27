@@ -39,7 +39,7 @@ void Ui::displayColon(int x, int y, uint8_t size){
      _display->print(":");
 }
 
-void Ui::dislayWeek(int x, int y, uint8_t size, int week){
+void Ui::displayWeek(int x, int y, uint8_t size, int week){
     _display->setTextSize(size);
     _display->setCursor(x, y);
     _display->print(_weekDays[week]);
@@ -65,12 +65,6 @@ void Ui::displayMonth(int x, int y, uint8_t size, int num){
     _display->setCursor(x, y);
     _display->setTextSize(size);
     _display->print(_months[num]);    
-}
-
-void Ui::displayWeek(int x, int y, uint8_t size, int num){
-    _display->setCursor(x, y);
-    _display->setTextSize(size);
-    _display->print(_weekDays[num]);     
 }
 
 String Ui::epochToDate(time_t epoch){
@@ -216,6 +210,24 @@ void Ui::printAppBar(int x, int y, String title){
     _display->setTextSize(1);
     _display->setTextColor(BLACK);
     _display->print(title);
+}
+
+void Ui::showBatteryPercentage(char value){
+    _display->fillRect(100, 0, 27, 15, BLACK);
+    _display->drawRect(107, 3, 20, 10, WHITE);
+    _display->fillRect(104, 5, 3, 5, WHITE);
+    for (size_t i = 0; i < value; i++)
+    {
+        _display->drawLine(126 -i, 4, 126 -i, 11, WHITE);
+    }    
+}
+
+void Ui::showTemprature(int x, int y, int size, char value){
+    char buff[3];
+    _display->setCursor(x, y);
+    _display->setTextSize(size);
+    sprintf(buff, "%02dc", value);
+    _display->print(buff);
 }
 
 void Ui::enableDefaultFont(){

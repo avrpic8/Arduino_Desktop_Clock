@@ -29,8 +29,6 @@ void setup()
     intiPins();
     initTwi();
     initLcd();
-    //initWifiModule();
-    //initNtpClient();
     initRtc();
     
     /// start ticker
@@ -187,6 +185,13 @@ void enableRotaryMenuInterrupt(void){
 void disableRotaryMenuInterrupt(void){
   detachInterrupt(PIN_ROTARY_IN1);
   detachInterrupt(PIN_ROTARY_IN2);;
+}
+
+char getBatteryLevel(void){
+  int adc = analogRead(ANALOG_PIN);
+  int result = (adc * 2) / 100;
+  if(result > 20) result = 20;
+  return result;
 }
 
 void showMainMenu(void){
@@ -389,7 +394,6 @@ void showMainMenu(void){
 void showClockPage(){
 
   display.setTextColor(WHITE, BLACK);
-
   while(1){
 
     ///updateRTC();
@@ -409,12 +413,14 @@ void showClockPage(){
       ui.displayOff();
     }
 
-    ui.dislayWeek(0, 0, 2, week);
+    ui.displayWeek(0, 0, 2, week);
     ui.displayHour(0,22,4, hour);
     ui.displayColon(44, 30,3);
     ui.displayMin(56,22,4, min);
     ui.displaySec(102, 35, 2, sec);
     ui.displayDate(0, 55, 1, ui.epochToDate(rtc.getEpoch()));
+    ui.showBatteryPercentage(getBatteryLevel());
+    ui.showTemprature(110, 55, 1, 25);
     ui.updateScreen();  
   }
 }
