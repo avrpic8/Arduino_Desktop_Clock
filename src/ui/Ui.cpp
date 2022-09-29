@@ -198,7 +198,10 @@ void Ui::printNumberAt(int x, int y, int size, int num){
 
 void Ui::printNumberAt(int x, int y, int size, int num, int lenght){
     char buff[lenght];
-    sprintf(buff, "%02d", num);
+    if(lenght == 2)
+        sprintf(buff, "%02d", num);
+    else
+        sprintf(buff, "%03d", num);    
     _display->setTextSize(size);
     _display->setCursor(x, y);
     _display->print(buff);             

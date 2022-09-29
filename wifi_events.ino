@@ -352,6 +352,7 @@ void showMainMenu(void){
             ui.printStringAt(10, 56, "display", false);
 
             ui.updateScreen();
+            if(menu.checkMenuSwitch() == CLICKED) showDisplaySetting();
  
         break;
 
@@ -646,5 +647,25 @@ void dateSet(void){
       }
       break; 
     }
+  }  
+}
+
+void showDisplaySetting(void){
+  ui.clearScreen();
+  menu.setMaxMargin(255);
+  menuIdx = 10;  
+
+  while (true)
+  {
+    ui.printNumberAt(40, 20, 3, menuIdx, 3);
+    ui.setContrast(menuIdx);
+    ui.updateScreen();  
+    if(menu.checkMenuSwitch() == CLICKED){
+      menu.setMaxMargin(5);
+      menuIdx = 0;
+      ui.clearScreen();
+      ui.enableDefaultFont();
+      return;
+    } 
   }  
 }
