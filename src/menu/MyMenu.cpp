@@ -31,8 +31,12 @@ int MyMenu::readRotEnc(){
     return reResult;
 }
 
-void MyMenu::setMaxMargin(int index){
+void MyMenu::setMaxIndex(int index){
     this->_maxMargin = index;
+}
+
+void MyMenu::setCurrentIndex(int value){
+    _menuIndex = value;
 }
 
 int MyMenu::getMenuIndex(void) {

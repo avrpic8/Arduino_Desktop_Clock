@@ -5,6 +5,7 @@
 #include <WiFiManager.h>
 #include <WiFiUdp.h>
 #include <NTPClient.h>
+#include <EEPROM.h>
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -13,6 +14,7 @@
 #include <stdio.h>
 #include "menu/MyMenu.h"
 #include"ui/Ui.h"
+
 
 /// fonts
 #include"customFonts/orbitron_9.h"

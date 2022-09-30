@@ -79,7 +79,6 @@ void initLcd(void){
   
   ui = Ui(&display);
   ui.setDisplaySleepTime(30);
-  ui.setContrast(1);
 }
 
 void tryConnectToWifi(void){
@@ -199,7 +198,7 @@ void showMainMenu(void){
   ui.disableDisplaySleep();
   menuIdx = 0;
   menu.setInputTime(millis());
-  menu.setMaxMargin(5);
+  menu.setMaxIndex(5);
   enableRotaryMenuInterrupt();
 
   ui.clearScreen();
@@ -428,7 +427,7 @@ void showClockPage(){
 
 void showClockSetting(void){
   ui.clearScreen();
-  menu.setMaxMargin(3);
+  menu.setMaxIndex(3);
   menuIdx = 0;
 
   while(true){
@@ -470,7 +469,7 @@ void showClockSetting(void){
       ui.clearDisplayAt(1, 46, "o");
       ui.updateScreen();
       if(menu.checkMenuSwitch() == CLICKED){
-        menu.setMaxMargin(5);
+        menu.setMaxIndex(5);
         menuIdx = 1;  
         ui.clearScreen();
         return;
@@ -490,8 +489,7 @@ void showClockSettingTitles(void){
 
 void timeSet(void){
   ui.clearScreen();
-  menu.setMaxMargin(2);
-  menuIdx = 0;
+  menu.setMaxIndex(2);
 
   /// get time from ds1307 rtc
   uint8_t hour, min, sec;
@@ -500,12 +498,14 @@ void timeSet(void){
   ui.displayColon(35, 30,3);
   ui.displayMin(56,30,3, min);
   ui.displaySec(102, 35, 2, sec);
+
   while(true){
     switch (menuIdx)
     {
     case 0:
       display.fillTriangle(10, 3, 30, 3, 20, 15, WHITE);
-      menu.setMaxMargin(23);
+      menu.setMaxIndex(23);
+      menu.setCurrentIndex(hour);
       while (true)
       {
         hour = menuIdx;
@@ -522,7 +522,8 @@ void timeSet(void){
       display.fillRect(10, 3, 25, 15, BLACK);
       display.fillRect(107, 3, 25, 15, BLACK);
       display.fillTriangle(60, 3, 80, 3, 70, 15, WHITE);
-      menu.setMaxMargin(59);
+      menu.setMaxIndex(59);
+      menu.setCurrentIndex(min);
       while (true)
       {
         min = menuIdx;
@@ -539,13 +540,15 @@ void timeSet(void){
       display.fillRect(10, 3, 25, 15, BLACK);
       display.fillRect(60, 3, 25, 15, BLACK);
       display.fillTriangle(107, 3, 127, 3, 117, 15, WHITE);
-      menu.setMaxMargin(59);
+      menu.setMaxIndex(59);
+      menu.setCurrentIndex(sec);
       while (true)
       {
         sec = menuIdx;
         ui.displaySec(102, 35, 2, sec); 
         if(menu.checkMenuSwitch() == CLICKED){
-          menu.setMaxMargin(3);
+          menu.setMaxIndex(3);
+          menu.setCurrentIndex(0);
           menuIdx = 0;
           ui.clearScreen();
           ui.enableDefaultFont();
@@ -561,16 +564,15 @@ void timeSet(void){
 
 void dateSet(void){
   ui.clearScreen();
-  menu.setMaxMargin(3);
+  menu.setMaxIndex(3);
   menuIdx = 0;  
 
   ui.printNumberAt(0, 25, 2, 12);
   ui.printStringAt(32, 25, 2, "Jun");
   ui.printStringAt(80, 25, 2, "2022");
   ui.printStringAt(32, 47, 2, "Wed");
-
   u_int8_t day, month, week;
-  u_char year;
+  uint16_t year;
 
   while (true)
   {
@@ -578,7 +580,8 @@ void dateSet(void){
     {
     case 0:
       display.fillTriangle(5, 3, 25, 3, 15, 15, WHITE);
-      menu.setMaxMargin(31);
+      menu.setMaxIndex(31);
+      menu.setCurrentIndex(1);
       menuIdx = 1;
       while (true)
       {
@@ -595,8 +598,8 @@ void dateSet(void){
     case 1:
       display.fillTriangle(42, 3, 62, 3, 52, 15, WHITE);
       display.fillRect(5, 3 , 25, 15, BLACK);
-      menu.setMaxMargin(11);
-      menuIdx = 1;
+      menu.setMaxIndex(11);
+      menu.setCurrentIndex(1);
       while (true)
       {
         month = menuIdx + 1;
@@ -612,7 +615,8 @@ void dateSet(void){
     case 2:
       display.fillTriangle(90, 3, 110, 3, 100, 15, WHITE);
       display.fillRect(42, 3 , 25, 15, BLACK);
-      menu.setMaxMargin(30);
+      menu.setMaxIndex(30);
+      menu.setCurrentIndex(22);
       menuIdx = 22;
       while (true)
       {
@@ -629,17 +633,19 @@ void dateSet(void){
     case 3:
       display.fillTriangle(10, 43, 10, 60, 20, 51, WHITE);
       display.fillRect(90, 3 , 25, 15, BLACK);
-      menu.setMaxMargin(6);
+      menu.setMaxIndex(6);
+      menu.setCurrentIndex(0);
       menuIdx = 0;
       while (true)
       {
         week = menuIdx;
         if(menu.checkMenuSwitch() == CLICKED){
-          menu.setMaxMargin(3);
+          menu.setMaxIndex(3);
+          menu.setCurrentIndex(0);
           menuIdx = 0;
           ui.clearScreen();
           ui.enableDefaultFont();
-          while (!rtc.setDate(day, month, year-4, week));
+          while(!rtc.setDate(day, month, year, week));
           return;
         } 
         ui.displayWeek(32, 47, 2, menuIdx);
@@ -652,8 +658,8 @@ void dateSet(void){
 
 void showDisplaySetting(void){
   ui.clearScreen();
-  menu.setMaxMargin(255);
-  menuIdx = 10;  
+  menu.setMaxIndex(255);
+  menuIdx = 1;  
 
   while (true)
   {
@@ -661,7 +667,7 @@ void showDisplaySetting(void){
     ui.setContrast(menuIdx);
     ui.updateScreen();  
     if(menu.checkMenuSwitch() == CLICKED){
-      menu.setMaxMargin(5);
+      menu.setMaxIndex(5);
       menuIdx = 0;
       ui.clearScreen();
       ui.enableDefaultFont();
