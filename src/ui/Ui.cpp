@@ -96,9 +96,9 @@ void Ui::displayOff(){
         _display->drawPixel(127 - row, 33, BLACK);
         updateScreen();
     }
-
+    
     _displayTimeOut = false;
-    _display->ssd1306_command(SSD1306_DISPLAYOFF);
+    _display->ssd1306_command(SSD1306_DISPLAYOFF);    
 }
 
 void Ui::displayOn(){

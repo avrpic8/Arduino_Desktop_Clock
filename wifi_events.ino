@@ -1,6 +1,5 @@
 #include "src/myImports.h"
 
-
 /// function definition
 void onEspConnected(const WiFiEventStationModeConnected& event);
 void onEspDisconnected(const WiFiEventStationModeDisconnected& event);
@@ -44,6 +43,14 @@ IRAM_ATTR void checkPosition()
   menu.setInputTime(millis());
 }
 
+void wakeupCallback() {
+  // if(!ui.isEnableDisplaySleep()){
+  //   allowToSleep = true;
+  // }
+  ledTicker.attach(1, blinkLED);
+  Serial.println("Waked up");
+}
+
 void loop()
 { 
   showClockPage();
@@ -78,7 +85,8 @@ void initLcd(void){
   display.clearDisplay();
   
   ui = Ui(&display);
-  ui.setDisplaySleepTime(30);
+  ui.setDisplaySleepTime(10);
+  ui.setContrast(5);
 }
 
 void tryConnectToWifi(void){
@@ -99,6 +107,14 @@ void initWifiModule(void){
     connectedEvent = WiFi.onStationModeConnected(&onEspConnected);
     disconnectedEvent = WiFi.onStationModeDisconnected(&onEspDisconnected);
     tryConnectToWifi();      
+}
+
+void turnWifiOff(void){
+  allowToSleep = false;
+  WiFi.mode(WIFI_OFF);
+  WiFi.forceSleepBegin();
+  delay(1);
+  Serial.println("Waked up");
 }
 
 bool initNtpClient(void){
@@ -174,6 +190,28 @@ void onEspDisconnected(const WiFiEventStationModeDisconnected& event){
     Serial.print("disconnected from the wifi: ");
     Serial.println(event.ssid);
     conectedFlag = false;     
+}
+
+void light_sleep(){
+   wifi_set_opmode_current(NULL_MODE);
+   wifi_fpm_set_sleep_type(LIGHT_SLEEP_T); // set sleep type
+   wifi_fpm_open(); // Enables force sleep
+   gpio_pin_wakeup_enable(GPIO_ID_PIN(PIN_SW), GPIO_PIN_INTR_LOLEVEL); // GPIO_ID_PIN(7)
+   wifi_fpm_set_wakeup_cb(wakeupCallback);
+   wifi_fpm_do_sleep(0xFFFFFFF); // Sleep for longest possible time
+   delay(10);
+}
+
+void timedLightSleep(){
+  extern os_timer_t *timer_list;
+  timer_list = nullptr;
+  wifi_set_opmode_current(NULL_MODE);
+  wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
+  wifi_fpm_open();
+  gpio_pin_wakeup_enable(GPIO_ID_PIN(PIN_SW), GPIO_PIN_INTR_LOLEVEL);
+  wifi_fpm_set_wakeup_cb(wakeupCallback);
+  wifi_fpm_do_sleep(sleepTimeMilliSeconds * 1000);
+  delay(1000);
 }
 
 void enableRotaryMenuInterrupt(void){
@@ -403,14 +441,16 @@ void showClockPage(){
     rtc.getDateTime(&hour, &min, &sec, &temp, &temp, &year, &week);
 
     char clickStatus = menu.checkMenuSwitch();
-    if(clickStatus == CLICKED){
-      ui.displayOn();
-    }
     if(clickStatus == LONG_CLICKED){
       return;
     }
+    if(clickStatus == CLICKED){
+      ui.displayOn();
+      turnWifiOff();
+    }
     if(ui.isDisplayTimeOut()){
       ui.displayOff();
+      timedLightSleep();
     }
 
     ui.displayWeek(0, 0, 2, week);
@@ -421,7 +461,7 @@ void showClockPage(){
     ui.displayDate(0, 55, 1, ui.epochToDate(rtc.getEpoch()));
     ui.showBatteryPercentage(getBatteryLevel());
     ui.showTemprature(110, 55, 1, 25);
-    ui.updateScreen();  
+    ui.updateScreen();    
   }
 }
 

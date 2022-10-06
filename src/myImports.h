@@ -1,11 +1,19 @@
 #include "definition.h"
 
+/// Gpio
+extern "C" {
+   #include "gpio.h"
+ }
+extern "C" {
+   #include "user_interface.h"
+ }
+
+
 /// for wifi module
 #include <ESP8266WiFi.h>
 #include <WiFiManager.h>
 #include <WiFiUdp.h>
 #include <NTPClient.h>
-#include <EEPROM.h>
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -26,8 +34,10 @@ Adafruit_SSD1306 display;
 TwoWire wire;
 
 
-/// wifi connect manager
+/// wifi manager
 WiFiManager wifiManger;
+bool allowToSleep = false;
+long sleepTimeMilliSeconds = 10e3;
 
 
 /// ticker 

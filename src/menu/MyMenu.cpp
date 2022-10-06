@@ -62,19 +62,16 @@ int MyMenu::checkMenuSwitch(void){
 
     if (swState == LOW && lastSwState == HIGH) {
         unsigned long startTime = millis();
-        
         while (digitalRead(PIN_SW) == LOW) {                                    
             lastSwState = swState;
             if (millis() - startTime > 1000)
                 break;
         }
-        
         if (millis() - startTime > 1000)
             return LONG_CLICKED;
         else
             return CLICKED;
     }
-  
     lastSwState = swState; 
     return false;   
 }
