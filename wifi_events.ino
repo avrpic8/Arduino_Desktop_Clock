@@ -47,8 +47,8 @@ void wakeupCallback() {
   // if(!ui.isEnableDisplaySleep()){
   //   allowToSleep = true;
   // }
-  ledTicker.attach(1, blinkLED);
   Serial.println("Waked up");
+  Serial.flush();
 }
 
 void loop()
@@ -203,15 +203,19 @@ void light_sleep(){
 }
 
 void timedLightSleep(){
-  extern os_timer_t *timer_list;
-  timer_list = nullptr;
+  //digitalWrite(LED_BUILTIN, 1);
+  Serial.println("Going to sleep");
+
   wifi_set_opmode_current(NULL_MODE);
   wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
   wifi_fpm_open();
   gpio_pin_wakeup_enable(GPIO_ID_PIN(PIN_SW), GPIO_PIN_INTR_LOLEVEL);
   wifi_fpm_set_wakeup_cb(wakeupCallback);
   wifi_fpm_do_sleep(sleepTimeMilliSeconds * 1000);
-  delay(1000);
+  delay(sleepTimeMilliSeconds + 1);
+  
+  ledTicker.attach(1, blinkLED);
+  Serial.println("Continue");
 }
 
 void enableRotaryMenuInterrupt(void){
@@ -442,6 +446,7 @@ void showClockPage(){
 
     char clickStatus = menu.checkMenuSwitch();
     if(clickStatus == LONG_CLICKED){
+      Serial.println("long");
       return;
     }
     if(clickStatus == CLICKED){
@@ -450,6 +455,7 @@ void showClockPage(){
     }
     if(ui.isDisplayTimeOut()){
       ui.displayOff();
+      ledTicker.detach();
       timedLightSleep();
     }
 
