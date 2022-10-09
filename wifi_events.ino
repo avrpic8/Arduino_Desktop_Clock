@@ -33,7 +33,7 @@ void setup()
     /// start ticker
     ledTicker.attach(1, blinkLED);
 
-    WiFi.mode(WIFI_OFF);
+    turnWifiOff();
     ui.clearScreen();
 }
 
@@ -44,9 +44,7 @@ IRAM_ATTR void checkPosition()
 }
 
 void wakeupCallback() {
-  // if(!ui.isEnableDisplaySleep()){
-  //   allowToSleep = true;
-  // }
+  ledTicker.attach(1, blinkLED);
   Serial.println("Waked up");
   Serial.flush();
 }
@@ -110,11 +108,9 @@ void initWifiModule(void){
 }
 
 void turnWifiOff(void){
-  allowToSleep = false;
   WiFi.mode(WIFI_OFF);
   WiFi.forceSleepBegin();
   delay(1);
-  Serial.println("Waked up");
 }
 
 bool initNtpClient(void){
@@ -203,18 +199,21 @@ void light_sleep(){
 }
 
 void timedLightSleep(){
-  //digitalWrite(LED_BUILTIN, 1);
+  digitalWrite(LED_BUILTIN, 1);
+  ledTicker.detach();
   Serial.println("Going to sleep");
 
+  extern os_timer_t *timer_list;
+  timer_list = nullptr;
   wifi_set_opmode_current(NULL_MODE);
   wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
   wifi_fpm_open();
   gpio_pin_wakeup_enable(GPIO_ID_PIN(PIN_SW), GPIO_PIN_INTR_LOLEVEL);
   wifi_fpm_set_wakeup_cb(wakeupCallback);
-  wifi_fpm_do_sleep(sleepTimeMilliSeconds * 1000);
-  delay(sleepTimeMilliSeconds + 1);
+  wifi_fpm_do_sleep(oneMinuteSleep * 1000);
+  delay(oneMinuteSleep + 100);
   
-  ledTicker.attach(1, blinkLED);
+  gpio_pin_wakeup_disable();
   Serial.println("Continue");
 }
 
@@ -237,7 +236,7 @@ char getBatteryLevel(void){
 
 void showMainMenu(void){
 
-  ui.disableDisplaySleep();
+  ui.disableSleepForDisplay();
   menuIdx = 0;
   menu.setInputTime(millis());
   menu.setMaxIndex(5);
@@ -251,7 +250,7 @@ void showMainMenu(void){
     ui.printAppBar(35,3, "Dashboard");
     if(menu.checkForAutoExit()) {
       disableRotaryMenuInterrupt();
-      ui.enableDisplaySleep();
+      ui.enableSleepForDisplay();
       ui.clearScreen();
       break;
     }
@@ -282,7 +281,7 @@ void showMainMenu(void){
 
           if(menu.checkMenuSwitch() == CLICKED){
             disableRotaryMenuInterrupt();
-            ui.enableDisplaySleep();
+            ui.enableSleepForDisplay();
             ui.clearScreen();
             return;
           }
@@ -425,7 +424,7 @@ void showMainMenu(void){
         if(menu.checkMenuSwitch() == CLICKED){
             disableRotaryMenuInterrupt();
             ui.clearScreen();
-            ui.enableDisplaySleep();
+            ui.enableSleepForDisplay();
             return;
         }    
         break;
@@ -455,7 +454,6 @@ void showClockPage(){
     }
     if(ui.isDisplayTimeOut()){
       ui.displayOff();
-      ledTicker.detach();
       timedLightSleep();
     }
 
@@ -468,6 +466,10 @@ void showClockPage(){
     ui.showBatteryPercentage(getBatteryLevel());
     ui.showTemprature(110, 55, 1, 25);
     ui.updateScreen();    
+
+    if(!ui.isDisplayOn()){
+      timedLightSleep();
+    }
   }
 }
 
@@ -505,6 +507,7 @@ void showClockSetting(void){
       ui.clearDisplayAt(1, 36, "o");
       ui.clearDisplayAt(1, 46, " ");
       ui.updateScreen();
+      if(menu.checkMenuSwitch() == CLICKED) alarmSet();
       break;  
     
     case 3:
@@ -610,7 +613,7 @@ void timeSet(void){
 
 void dateSet(void){
   ui.clearScreen();
-  menu.setMaxIndex(3);
+  menu.resetMenu(3);
   menuIdx = 0;  
 
   ui.printNumberAt(0, 25, 2, 12);
@@ -698,6 +701,68 @@ void dateSet(void){
         ui.updateScreen();  
       }
       break; 
+    }
+  }  
+}
+
+void alarmSet(void){
+  ui.clearScreen();
+  menu.resetMenu(2);
+  menuIdx = 0;
+
+  ui.printAppBar(35,3, "Alarm Menu"); 
+
+  ui.printStringAt(40, 17, 2, "On");
+  ui.displayHour(15,40,3, 00);
+  ui.displayColon(50, 40,3);
+  ui.displayMin(70,40,3, 00);
+
+  while (true)
+  {
+    switch (menuIdx)
+    {
+      case 0:
+        menu.setMaxIndex(1);
+        while(true){
+          if(menuIdx == 1){
+            ui.printStringAt(40, 17, 2, "On ");  
+          }else{
+            ui.printStringAt(40, 17, 2, "OFF"); 
+          }
+          if(menu.checkMenuSwitch() == CLICKED){
+            menuIdx = 1;
+            break;
+          }  
+          ui.updateScreen();
+        }
+        break;  
+
+      case 1:
+        menu.resetMenu(23);
+        while(true){
+          ui.displayHour(15,40,3, menuIdx);
+          ui.updateScreen();
+          if(menu.checkMenuSwitch() == CLICKED){
+            menuIdx = 2;
+            break;
+          } 
+        }
+        break;  
+
+      case 2:
+        menu.resetMenu(59);
+        while(true){
+          ui.displayMin(70,40,3, menuIdx);
+          ui.updateScreen();
+          if(menu.checkMenuSwitch() == CLICKED){
+            menu.resetMenu(3);
+            menuIdx = 0;
+            ui.clearScreen();
+            ui.enableDefaultFont();
+            return;
+          } 
+        }
+        break;  
     }
   }  
 }

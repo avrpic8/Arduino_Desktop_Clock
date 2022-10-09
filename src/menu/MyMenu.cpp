@@ -93,3 +93,8 @@ bool MyMenu::checkForAutoExit(void){
         return false;
     }
 }
+
+void MyMenu::resetMenu(int maxIndex){
+    setMaxIndex(maxIndex);
+    setCurrentIndex(0);
+}

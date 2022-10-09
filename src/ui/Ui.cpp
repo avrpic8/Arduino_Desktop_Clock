@@ -98,11 +98,14 @@ void Ui::displayOff(){
     }
     
     _displayTimeOut = false;
+    _displayOn = false;
     _display->ssd1306_command(SSD1306_DISPLAYOFF);    
+
 }
 
 void Ui::displayOn(){
-    enableDisplaySleep();
+    enableSleepForDisplay();
+    _displayOn = true;
     _display->ssd1306_command(SSD1306_DISPLAYON);   
 }
 
@@ -119,34 +122,32 @@ void Ui::resetDisplaySleepTimer(void){
 }
 
 void Ui::checkDisplaySleep(void){
-    if(isEnableDisplaySleep()){
+    if(_allowDisplaySleep){
         _displaySleepCounter++;
         if(getDisplaySleepTime() == _displaySleepCounter) {
-            resetDisplaySleepTimer();
-            disableDisplaySleep();    
+            resetDisplaySleepTimer();  
+            disableSleepForDisplay();
         }
     }
 }
 
-void Ui::enableDisplaySleep(void){
+void Ui::enableSleepForDisplay(void){
     _allowDisplaySleep = true;
     _displayTimeOut = false;
+    resetDisplaySleepTimer();
 }
 
-void Ui::disableDisplaySleep(void){
+void Ui::disableSleepForDisplay(void){
     _allowDisplaySleep = false;
     _displayTimeOut = true;
 }
 
-bool Ui::isEnableDisplaySleep(void){
-    if(_allowDisplaySleep)
-        return true;
-    else 
-        return false;
-}
-
 bool Ui::isDisplayTimeOut(void){
     return _displayTimeOut;
+}
+
+bool Ui::isDisplayOn(void){
+    return _displayOn;
 }
 
 
@@ -170,7 +171,6 @@ void Ui::printStringAt(int x, int y, String message){
     _display->setTextColor(WHITE,BLACK);
     _display->setCursor(x, y);
     _display->print(message); 
-    _display->display(); 
 }
 
 void Ui::printStringAt(int x, int y, String message, bool update){

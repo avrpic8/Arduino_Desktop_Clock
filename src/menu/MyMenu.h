@@ -15,6 +15,7 @@ class MyMenu{
         int getMenuRpm();
         bool checkForAutoExit(void);
         void setInputTime(int time);
+        void resetMenu(int maxIndex);
 
     private:
         int _menuIndex = 0;

@@ -28,10 +28,10 @@ class Ui{
         uint8_t getDisplaySleepTime(void);
         void checkDisplaySleep(void);
         void resetDisplaySleepTimer(void);
-        void enableDisplaySleep(void);
-        void disableDisplaySleep(void);
-        bool isEnableDisplaySleep(void);
+        void enableSleepForDisplay(void);
+        void disableSleepForDisplay(void);
         bool isDisplayTimeOut(void);
+        bool isDisplayOn(void);
 
 
         /// simple helper functins for print on screen
@@ -55,6 +55,7 @@ class Ui{
         u_int8_t _displaySleepCounter = 0;
         bool _allowDisplaySleep = true;
         bool _displayTimeOut = false;
+        bool _displayOn = true;
 
         //Week Days
         String _weekDays[7]={"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};

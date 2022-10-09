@@ -36,8 +36,7 @@ TwoWire wire;
 
 /// wifi manager
 WiFiManager wifiManger;
-bool allowToSleep = false;
-long sleepTimeMilliSeconds = 10e3;
+long oneMinuteSleep = 60e3;  /// one minutes in sleep
 
 
 /// ticker 
