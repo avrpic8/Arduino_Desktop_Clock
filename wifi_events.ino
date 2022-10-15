@@ -32,9 +32,10 @@ void setup()
     
     /// start ticker
     ledTicker.attach(1, blinkLED);
+    alarmClock = Alarm(&alarmOn, &alarmOff, D3);
 
     turnWifiOff();
-    ui.clearScreen();
+    ui.clearScreen();  
 }
 
 IRAM_ATTR void checkPosition()
@@ -49,6 +50,18 @@ void wakeupCallback() {
   Serial.flush();
 }
 
+void alarmOn(){
+  ui.displayOn();
+  alarmClock.disableAlarmEvent();
+  alarmClock.playAlarm();
+  Serial.println("Alarm on");
+}
+void alarmOff(){
+  alarmClock.enableAlarmEvent();
+  alarmClock.stopAlarm();
+  Serial.println("Alarm off");
+}
+
 void loop()
 { 
   showClockPage();
@@ -59,13 +72,14 @@ void loop()
 ////////// Implementaion methods  //////////
 
 void blinkLED(){
-  int state = digitalRead(LED_BUILTIN);
-  digitalWrite(LED_BUILTIN, !state);
+  //int state = digitalRead(LED_BUILTIN);
+  //digitalWrite(LED_BUILTIN, !state);
   ui.checkDisplaySleep();
 }
 
 void intiPins(void){
   pinMode(LED_BUILTIN, OUTPUT);
+  EasyBuzzer.setPin(D4);
 }
 
 void initTwi(void){
@@ -188,20 +202,29 @@ void onEspDisconnected(const WiFiEventStationModeDisconnected& event){
     conectedFlag = false;     
 }
 
-void light_sleep(){
-   wifi_set_opmode_current(NULL_MODE);
-   wifi_fpm_set_sleep_type(LIGHT_SLEEP_T); // set sleep type
-   wifi_fpm_open(); // Enables force sleep
-   gpio_pin_wakeup_enable(GPIO_ID_PIN(PIN_SW), GPIO_PIN_INTR_LOLEVEL); // GPIO_ID_PIN(7)
-   wifi_fpm_set_wakeup_cb(wakeupCallback);
-   wifi_fpm_do_sleep(0xFFFFFFF); // Sleep for longest possible time
-   delay(10);
+void lightSleep(){
+  digitalWrite(LED_BUILTIN, 1);
+  ledTicker.detach();
+  Serial.println("Going to ligth sleep");
+
+  extern os_timer_t *timer_list;
+  timer_list = nullptr;
+  wifi_set_opmode_current(NULL_MODE);
+  wifi_fpm_set_sleep_type(LIGHT_SLEEP_T); // set sleep type
+  wifi_fpm_open(); // Enables force sleep
+  gpio_pin_wakeup_enable(GPIO_ID_PIN(PIN_SW), GPIO_PIN_INTR_LOLEVEL); // GPIO_ID_PIN(7)
+  wifi_fpm_set_wakeup_cb(wakeupCallback);
+  wifi_fpm_do_sleep(0xFFFFFFF); // Sleep for longest possible time
+  delay(10);
+
+  gpio_pin_wakeup_disable();
+  Serial.println("Continue");
 }
 
 void timedLightSleep(){
   digitalWrite(LED_BUILTIN, 1);
   ledTicker.detach();
-  Serial.println("Going to sleep");
+  Serial.println("Going to timed light sleep");
 
   extern os_timer_t *timer_list;
   timer_list = nullptr;
@@ -433,10 +456,14 @@ void showMainMenu(void){
 }
 
 void showClockPage(){
-
+  
+  EasyBuzzer.singleBeep(
+    1000, 	// Frequency in hertz(HZ).  
+    1000	// [Optional] Function to call when done.
+  ); 
   display.setTextColor(WHITE, BLACK);
   while(1){
-
+    EasyBuzzer.update();
     ///updateRTC();
     /// get time from ds1307 rtc
     uint16 year;
@@ -449,12 +476,25 @@ void showClockPage(){
       return;
     }
     if(clickStatus == CLICKED){
+      if(alarmClock.isAlarmRunning()){
+        alarmClock.stopAlarm();
+      }
       ui.displayOn();
       turnWifiOff();
     }
     if(ui.isDisplayTimeOut()){
       ui.displayOff();
-      timedLightSleep();
+      if(alarmClock.isAlarmOn()){
+        timedLightSleep();
+      }else{
+        lightSleep();
+      }
+    }
+    if(alarmClock.isAlarmOn()){
+      alarmClock.tick(hour, min, sec);
+      if(alarmClock.isAlarmRunning()){
+        //alarmClock.alarmUpdate();
+      }
     }
 
     ui.displayWeek(0, 0, 2, week);
@@ -706,27 +746,31 @@ void dateSet(void){
 }
 
 void alarmSet(void){
+
+  uint8 alarmH, alarmM;
+
   ui.clearScreen();
   menu.resetMenu(2);
   menuIdx = 0;
-
   ui.printAppBar(35,3, "Alarm Menu"); 
-
-  ui.printStringAt(40, 17, 2, "On");
-  ui.displayHour(15,40,3, 00);
+  ui.displayHour(15,40,3, alarmClock.getHourAlarm());
   ui.displayColon(50, 40,3);
-  ui.displayMin(70,40,3, 00);
+  ui.displayMin(70,40,3, alarmClock.getMinuteAlarm());
 
   while (true)
   {
     switch (menuIdx)
     {
       case 0:
-        menu.setMaxIndex(1);
+        menu.resetMenu(1);
+        if(alarmClock.isAlarmOn()) menuIdx = 1;
+        else menuIdx = 0;
         while(true){
           if(menuIdx == 1){
-            ui.printStringAt(40, 17, 2, "On ");  
+            alarmClock.turnAlarm(ON);
+            ui.printStringAt(40, 17, 2, "On ");    
           }else{
+            alarmClock.turnAlarm(OFF);
             ui.printStringAt(40, 17, 2, "OFF"); 
           }
           if(menu.checkMenuSwitch() == CLICKED){
@@ -738,29 +782,35 @@ void alarmSet(void){
         break;  
 
       case 1:
-        menu.resetMenu(23);
+        menu.resetMenu(23, alarmClock.getHourAlarm());
+        menuIdx = alarmClock.getHourAlarm();
         while(true){
           ui.displayHour(15,40,3, menuIdx);
-          ui.updateScreen();
+          alarmH = menuIdx;
           if(menu.checkMenuSwitch() == CLICKED){
             menuIdx = 2;
             break;
           } 
+          ui.updateScreen();
         }
         break;  
 
       case 2:
-        menu.resetMenu(59);
+        menu.resetMenu(59, alarmClock.getMinuteAlarm());
+        menuIdx = alarmClock.getMinuteAlarm();
         while(true){
           ui.displayMin(70,40,3, menuIdx);
-          ui.updateScreen();
+          alarmM = menuIdx;
           if(menu.checkMenuSwitch() == CLICKED){
+            alarmClock.setWhenAlarmOn(alarmH, alarmM, 0);
+            alarmClock.setWhenAlarmOff(alarmH, alarmM + 1, 0);
             menu.resetMenu(3);
             menuIdx = 0;
             ui.clearScreen();
             ui.enableDefaultFont();
             return;
           } 
+          ui.updateScreen();
         }
         break;  
     }
