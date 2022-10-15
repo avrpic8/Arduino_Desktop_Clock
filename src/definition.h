@@ -13,6 +13,9 @@
 #define PIN_ROTARY_IN2 D6
 #define PIN_SW  D7
 
+/// alarm state
+#define ON true
+#define OFF false
 
 /// menu names
 #define Home 0

@@ -22,6 +22,7 @@ extern "C" {
 #include <stdio.h>
 #include "menu/MyMenu.h"
 #include"ui/Ui.h"
+#include"alarm/Alarm.h"
 
 
 /// fonts
@@ -51,6 +52,10 @@ int menuIdx = 0;
 
 /// ui manager
 Ui ui;
+
+
+/// alarm clock
+Alarm alarmClock;
 
 
 /// ntp

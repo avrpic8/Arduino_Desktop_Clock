@@ -163,8 +163,7 @@ void Ui::updateScreen(void){
 void Ui::clearDisplayAt(int x, int y, String len){
     _display->setTextColor(WHITE,BLACK);
     _display->setCursor(x, y);
-    _display->print(len); 
-    _display->display(); 
+    _display->print(len);  
 }
 
 void Ui::printStringAt(int x, int y, String message){
@@ -213,6 +212,7 @@ void Ui::printAppBar(int x, int y, String title){
     _display->setTextSize(1);
     _display->setTextColor(BLACK);
     _display->print(title);
+    _display->setTextColor(WHITE);
 }
 
 void Ui::showBatteryPercentage(char value){

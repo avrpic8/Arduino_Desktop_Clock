@@ -98,3 +98,8 @@ void MyMenu::resetMenu(int maxIndex){
     setMaxIndex(maxIndex);
     setCurrentIndex(0);
 }
+
+void MyMenu::resetMenu(int maxIndex, int currentIndex){
+    setMaxIndex(maxIndex);
+    setCurrentIndex(currentIndex);
+}
