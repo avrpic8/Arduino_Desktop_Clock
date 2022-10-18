@@ -28,11 +28,14 @@ void setup()
     intiPins();
     initTwi();
     initLcd();
+    initWifiModule();
+    initNtpClient();
     initRtc();
     
     /// start ticker
     ledTicker.attach(1, blinkLED);
     alarmClock = Alarm(&alarmOn, &alarmOff, D3);
+    sensor.begin();
 
     turnWifiOff();
     ui.clearScreen();  
@@ -72,14 +75,14 @@ void loop()
 ////////// Implementaion methods  //////////
 
 void blinkLED(){
-  //int state = digitalRead(LED_BUILTIN);
-  //digitalWrite(LED_BUILTIN, !state);
+  int state = digitalRead(LED_BUILTIN);
+  digitalWrite(LED_BUILTIN, !state);
   ui.checkDisplaySleep();
+  tempSampleConnter++;
 }
 
 void intiPins(void){
   pinMode(LED_BUILTIN, OUTPUT);
-  EasyBuzzer.setPin(D4);
 }
 
 void initTwi(void){
@@ -105,12 +108,12 @@ void tryConnectToWifi(void){
   ui.printStringAt(0,0 , "Connecting...");
   if(!wifiManger.autoConnect("Wifi-Clock")){
     ui.clearScreen(); 
-    ui.printStringAt(0,0 , "Unable to connected");
+    ui.printStringAt(0,0 , "Unable to connected", true);
     delay(2000);
     return;
   }
   ui.clearScreen(); 
-  ui.printStringAt(0,0 , "Connected to " + wifiManger.getWiFiSSID());
+  ui.printStringAt(0,0 , "Connected to " + wifiManger.getWiFiSSID(), true);
   delay(2000);    
 }
 
@@ -129,19 +132,20 @@ void turnWifiOff(void){
 
 bool initNtpClient(void){
   ui.clearScreen();
-  ui.printStringAt(0, 0, "Updating NTP");
+  ui.printStringAt(0, 0, "Updating NTP", true);
+
   timeClient.begin();
   timeClient.setTimeOffset(12600);
   timeClient.setUpdateInterval(0);
 
   if(!timeClient.update()){
     ui.clearScreen();
-    ui.printStringAt(0, 0, "NTP update failed");
+    ui.printStringAt(0, 0, "NTP update failed", true);
     delay(2000);
     return false;
   }else{
     ui.clearScreen();
-    ui.printStringAt(0, 0, "NTP update success");   
+    ui.printStringAt(0, 0, "NTP update success", true);   
     delay(2000);
     return true; 
   }
@@ -156,13 +160,13 @@ void initRtc(void){
     delay(1000);
   }
 
-  ui.printStringAt(0, 0, "Setting RTC");
+  ui.printStringAt(0, 0, "Setting RTC", true);
   if(!rtc.setEpoch(timeClient.getEpochTime())){
     ui.clearScreen();
-    ui.printStringAt(0, 0, "RTC not found");
+    ui.printStringAt(0, 0, "RTC not found", true);
   }else{
     ui.clearScreen();
-    ui.printStringAt(0, 0, "RTC set success");  
+    ui.printStringAt(0, 0, "RTC set success", true);  
   }
   delay(2000);
 }
@@ -257,12 +261,18 @@ char getBatteryLevel(void){
   return result;
 }
 
+float getTemprature(void){
+  sensor.requestTemperatures();
+  float tempC = sensor.getTempCByIndex(0);
+  return tempC;
+}
+
 void showMainMenu(void){
 
   ui.disableSleepForDisplay();
-  menuIdx = 0;
   menu.setInputTime(millis());
-  menu.setMaxIndex(5);
+  menu.resetMenu(5, 0);
+  menuIdx = 0;
   enableRotaryMenuInterrupt();
 
   ui.clearScreen();
@@ -286,19 +296,19 @@ void showMainMenu(void){
             ui.clearDisplayAt(1, 56, " ");
 
             display.fillRect(10, 16, 100, 8, BLACK);
-            ui.printStringAt(10, 16, "home", false);
+            ui.printStringAt(10, 16, "Home", false);
 
             display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "clock", false);
+            ui.printStringAt(10, 26, "FM radio", false);
 
             display.fillRect(10, 36, 100, 8, BLACK);
-            ui.printStringAt(10, 36, "wifi settings", false);
+            ui.printStringAt(10, 36, "Clock set", false);
 
             display.fillRect(10, 46, 100, 8, BLACK);
-            ui.printStringAt(10, 46, "system", false);
+            ui.printStringAt(10, 46, "Wifi set", false);
 
             display.fillRect(10, 56, 100, 8, BLACK);
-            ui.printStringAt(10, 56, "display", false);
+            ui.printStringAt(10, 56, "Display", false);
 
             ui.updateScreen();
 
@@ -310,7 +320,7 @@ void showMainMenu(void){
           }
         break;
 
-      case Clock_SETTING:
+      case FM_RADIO:
  
             ui.clearDisplayAt(1, 16, " ");
             ui.printStringAt(1, 26, "o");
@@ -319,25 +329,23 @@ void showMainMenu(void){
             ui.clearDisplayAt(1, 56, " ");
 
             display.fillRect(10, 16, 100, 8, BLACK);
-            ui.printStringAt(10, 16, "home", false);
+            ui.printStringAt(10, 16, "Home", false);
 
             display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "clock", false);
+            ui.printStringAt(10, 26, "FM radio", false);
 
             display.fillRect(10, 36, 100, 8, BLACK);
-            ui.printStringAt(10, 36, "wifi settings", false);
+            ui.printStringAt(10, 36, "Clock set", false);
 
             display.fillRect(10, 46, 100, 8, BLACK);
-            ui.printStringAt(10, 46, "system", false);
+            ui.printStringAt(10, 46, "Wifi set", false);
 
             display.fillRect(10, 56, 100, 8, BLACK);
-            ui.printStringAt(10, 56, "display", false);
-
+            ui.printStringAt(10, 56, "Display", false);
             ui.updateScreen();
-            if(menu.checkMenuSwitch() == CLICKED) showClockSetting();
         break;
 
-      case WIFI_SETTING:
+      case CLOCK_SETTING:
  
             ui.clearDisplayAt(1, 16, " ");
             ui.clearDisplayAt(1, 26, " ");
@@ -346,25 +354,26 @@ void showMainMenu(void){
             ui.clearDisplayAt(1, 56, " ");
 
             display.fillRect(10, 16, 100, 8, BLACK);
-            ui.printStringAt(10, 16, "home", false);
+            ui.printStringAt(10, 16, "Home", false);
 
             display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "clock", false);
+            ui.printStringAt(10, 26, "FM radio", false);
 
             display.fillRect(10, 36, 100, 8, BLACK);
-            ui.printStringAt(10, 36, "wifi settings", false);
+            ui.printStringAt(10, 36, "Clock set", false);
 
             display.fillRect(10, 46, 100, 8, BLACK);
-            ui.printStringAt(10, 46, "system", false);
+            ui.printStringAt(10, 46, "Wifi set", false);
 
             display.fillRect(10, 56, 100, 8, BLACK);
-            ui.printStringAt(10, 56, "display", false);
+            ui.printStringAt(10, 56, "Display", false);
 
             ui.updateScreen();
+            if(menu.checkMenuSwitch() == CLICKED) showClockSetting();
       
         break;
 
-      case SYSTEM:
+      case WIFI_SETTING:
 
             ui.clearDisplayAt(1, 16, " ");
             ui.clearDisplayAt(1, 26, " ");
@@ -373,19 +382,19 @@ void showMainMenu(void){
             ui.clearDisplayAt(1, 56, " ");
 
             display.fillRect(10, 16, 100, 8, BLACK);
-            ui.printStringAt(10, 16, "home", false);
+            ui.printStringAt(10, 16, "Home", false);
 
             display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "clock", false);
+            ui.printStringAt(10, 26, "FM radio", false);
 
             display.fillRect(10, 36, 100, 8, BLACK);
-            ui.printStringAt(10, 36, "wifi settings", false);
+            ui.printStringAt(10, 36, "Clock set", false);
 
             display.fillRect(10, 46, 100, 8, BLACK);
-            ui.printStringAt(10, 46, "system", false);
+            ui.printStringAt(10, 46, "Wifi set", false);
 
             display.fillRect(10, 56, 100, 8, BLACK);
-            ui.printStringAt(10, 56, "display", false);
+            ui.printStringAt(10, 56, "Display", false);
 
             ui.updateScreen();
 
@@ -400,19 +409,19 @@ void showMainMenu(void){
             ui.printStringAt(1, 56, "o");
 
             display.fillRect(10, 16, 100, 8, BLACK);
-            ui.printStringAt(10, 16, "home", false);
+            ui.printStringAt(10, 16, "Home", false);
 
             display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "clock", false);
+            ui.printStringAt(10, 26, "FM radio", false);
 
             display.fillRect(10, 36, 100, 8, BLACK);
-            ui.printStringAt(10, 36, "wifi settings", false);
+            ui.printStringAt(10, 36, "Clock set", false);
 
             display.fillRect(10, 46, 100, 8, BLACK);
-            ui.printStringAt(10, 46, "system", false);
+            ui.printStringAt(10, 46, "Wifi set", false);
 
             display.fillRect(10, 56, 100, 8, BLACK);
-            ui.printStringAt(10, 56, "display", false);
+            ui.printStringAt(10, 56, "Display", false);
 
             ui.updateScreen();
             if(menu.checkMenuSwitch() == CLICKED) showDisplaySetting();
@@ -428,19 +437,19 @@ void showMainMenu(void){
             ui.printStringAt(1, 56, "o");
 
             display.fillRect(10, 16, 100, 8, BLACK);
-            ui.printStringAt(10, 16, "clock", false);
+            ui.printStringAt(10, 16, "FM radio", false);
 
             display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "wifi settings", false);
+            ui.printStringAt(10, 26, "Clock set", false);
 
             display.fillRect(10, 36, 100, 8, BLACK);
-            ui.printStringAt(10, 36, "system", false);
+            ui.printStringAt(10, 36, "Wifi set", false);
 
             display.fillRect(10, 46, 100, 8, BLACK);
-            ui.printStringAt(10, 46, "display", false);
+            ui.printStringAt(10, 46, "Display", false);
 
             display.fillRect(10, 56, 100, 8, BLACK);
-            ui.printStringAt(10, 56, "exit", false);
+            ui.printStringAt(10, 56, "Exit", false);
 
             ui.updateScreen();
 
@@ -456,19 +465,18 @@ void showMainMenu(void){
 }
 
 void showClockPage(){
-  
-  EasyBuzzer.singleBeep(
-    1000, 	// Frequency in hertz(HZ).  
-    1000	// [Optional] Function to call when done.
-  ); 
   display.setTextColor(WHITE, BLACK);
   while(1){
-    EasyBuzzer.update();
-    ///updateRTC();
+
     /// get time from ds1307 rtc
     uint16 year;
     uint8_t hour, min, sec, temp, week;
     rtc.getDateTime(&hour, &min, &sec, &temp, &temp, &year, &week);
+
+    if(++tempSampleConnter == TEMP_SAMPLE_TIME){
+      tempSampleConnter = 0;
+      tempC = getTemprature();
+    }
 
     char clickStatus = menu.checkMenuSwitch();
     if(clickStatus == LONG_CLICKED){
@@ -504,7 +512,7 @@ void showClockPage(){
     ui.displaySec(102, 35, 2, sec);
     ui.displayDate(0, 55, 1, ui.epochToDate(rtc.getEpoch()));
     ui.showBatteryPercentage(getBatteryLevel());
-    ui.showTemprature(110, 55, 1, 25);
+    ui.showTemprature(110, 55, 1, tempC);
     ui.updateScreen();    
 
     if(!ui.isDisplayOn()){
@@ -558,8 +566,8 @@ void showClockSetting(void){
       ui.clearDisplayAt(1, 46, "o");
       ui.updateScreen();
       if(menu.checkMenuSwitch() == CLICKED){
-        menu.setMaxIndex(5);
-        menuIdx = 1;  
+        menu.resetMenu(5, 2);
+        menuIdx = 2;  
         ui.clearScreen();
         return;
       }
@@ -570,15 +578,15 @@ void showClockSetting(void){
 
 void showClockSettingTitles(void){
   ui.printAppBar(35,3, "Clock Menu");
-  ui.printStringAt(10, 16, "time", false);
-  ui.printStringAt(10, 26, "date", false);
-  ui.printStringAt(10, 36, "alarm", false);
-  ui.printStringAt(10, 46, "exit", false);
+  ui.printStringAt(10, 16, "Time", false);
+  ui.printStringAt(10, 26, "Date", false);
+  ui.printStringAt(10, 36, "Alarm", false);
+  ui.printStringAt(10, 46, "Exit", false);
 }
 
 void timeSet(void){
   ui.clearScreen();
-  menu.setMaxIndex(2);
+  menu.resetMenu(2);
 
   /// get time from ds1307 rtc
   uint8_t hour, min, sec;
@@ -593,8 +601,8 @@ void timeSet(void){
     {
     case 0:
       display.fillTriangle(10, 3, 30, 3, 20, 15, WHITE);
-      menu.setMaxIndex(23);
-      menu.setCurrentIndex(hour);
+      menu.resetMenu(23, hour);
+      menuIdx = hour;
       while (true)
       {
         hour = menuIdx;
@@ -611,8 +619,8 @@ void timeSet(void){
       display.fillRect(10, 3, 25, 15, BLACK);
       display.fillRect(107, 3, 25, 15, BLACK);
       display.fillTriangle(60, 3, 80, 3, 70, 15, WHITE);
-      menu.setMaxIndex(59);
-      menu.setCurrentIndex(min);
+      menu.resetMenu(59, min);
+      menuIdx = min;
       while (true)
       {
         min = menuIdx;
@@ -629,8 +637,8 @@ void timeSet(void){
       display.fillRect(10, 3, 25, 15, BLACK);
       display.fillRect(60, 3, 25, 15, BLACK);
       display.fillTriangle(107, 3, 127, 3, 117, 15, WHITE);
-      menu.setMaxIndex(59);
-      menu.setCurrentIndex(sec);
+      menu.resetMenu(59, sec);
+      menuIdx = sec;
       while (true)
       {
         sec = menuIdx;
@@ -669,8 +677,7 @@ void dateSet(void){
     {
     case 0:
       display.fillTriangle(5, 3, 25, 3, 15, 15, WHITE);
-      menu.setMaxIndex(31);
-      menu.setCurrentIndex(1);
+      menu.resetMenu(31, 1);
       menuIdx = 1;
       while (true)
       {
@@ -687,8 +694,8 @@ void dateSet(void){
     case 1:
       display.fillTriangle(42, 3, 62, 3, 52, 15, WHITE);
       display.fillRect(5, 3 , 25, 15, BLACK);
-      menu.setMaxIndex(11);
-      menu.setCurrentIndex(1);
+      menu.resetMenu(11, 1);
+      menuIdx = 1;
       while (true)
       {
         month = menuIdx + 1;
@@ -704,8 +711,7 @@ void dateSet(void){
     case 2:
       display.fillTriangle(90, 3, 110, 3, 100, 15, WHITE);
       display.fillRect(42, 3 , 25, 15, BLACK);
-      menu.setMaxIndex(30);
-      menu.setCurrentIndex(22);
+      menu.resetMenu(22, 22);
       menuIdx = 22;
       while (true)
       {
@@ -722,8 +728,7 @@ void dateSet(void){
     case 3:
       display.fillTriangle(10, 43, 10, 60, 20, 51, WHITE);
       display.fillRect(90, 3 , 25, 15, BLACK);
-      menu.setMaxIndex(6);
-      menu.setCurrentIndex(0);
+      menu.resetMenu(6, 0);
       menuIdx = 0;
       while (true)
       {

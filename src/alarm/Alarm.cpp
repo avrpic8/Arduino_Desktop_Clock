@@ -5,7 +5,6 @@ Alarm::Alarm(void){}
 Alarm::Alarm(void (*on)(), void (*off)(), int buzzerPin):
  _handlerOn(on), _handlerOff(off)
 {
-    //EasyBuzzer.setPin(buzzerPin);
 }
 
 void Alarm::turnAlarm(bool state){
@@ -40,33 +39,12 @@ void Alarm::tick(uint8 hour, uint8 minute, uint8 second){
     }
 }
 
-void Alarm::alarmUpdate(void){
-    EasyBuzzer.update();
-}
-
 void Alarm::playAlarm(){
     _alarmIsRunning = true;
-
-    unsigned int frequency = 1000;  
-    unsigned int onDuration = 50;
-    unsigned int offDuration = 100;
-    unsigned int beeps = 2;
-    unsigned int pauseDuration = 500;
-    unsigned int cycles = 10;
-
-    EasyBuzzer.beep(
-		frequency,		// Frequency in hertz(HZ). 
-		onDuration, 	// On Duration in milliseconds(ms).
-		offDuration, 	// Off Duration in milliseconds(ms).
-		beeps, 			// The number of beeps per cycle.
-		pauseDuration, 	// Pause duration.
-		cycles 		// The number of cycle.
-	);
 }
 
 void Alarm::stopAlarm(){
     _alarmIsRunning = false;
-    EasyBuzzer.stopBeep();
 }
 
 bool Alarm::isAlarmRunning(void){

@@ -24,6 +24,9 @@ extern "C" {
 #include"ui/Ui.h"
 #include"alarm/Alarm.h"
 
+/// onewire
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 /// fonts
 #include"customFonts/orbitron_9.h"
@@ -66,3 +69,10 @@ NTPClient timeClient(ntpUDP, NTP_SERVER, 0, 60000);
 /// rtc
 ErriezDS1307 rtc;
 uint32 rtcUpdateCounter = 0;
+
+
+/// oneWire ds18b20
+OneWire onewire(ONEWIRE_BUS);
+DallasTemperature sensor(&onewire);
+char tempC = 0;
+char tempSampleConnter = 0;

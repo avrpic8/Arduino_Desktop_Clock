@@ -9,9 +9,13 @@
 #define NTP_SERVER "pool.ntp.org"
 
 /// rotary
-#define PIN_ROTARY_IN1 D5
+#define PIN_ROTARY_IN1 D3
 #define PIN_ROTARY_IN2 D6
 #define PIN_SW  D7
+
+/// onewire
+#define ONEWIRE_BUS D5
+#define TEMP_SAMPLE_TIME 2
 
 /// alarm state
 #define ON true
@@ -19,9 +23,9 @@
 
 /// menu names
 #define Home 0
-#define Clock_SETTING 1
-#define WIFI_SETTING 2
-#define SYSTEM 3
+#define FM_RADIO 1
+#define CLOCK_SETTING 2
+#define WIFI_SETTING 3
 #define DISPLAY 4
 #define EXIT 5
 
