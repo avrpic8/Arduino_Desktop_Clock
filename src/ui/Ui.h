@@ -2,6 +2,7 @@
 #define Ui_h
 
 #include<Adafruit_SSD1306.h>
+#include"../icon/iot_iconset_16x16.h"
 
 class Ui{
 
@@ -19,6 +20,7 @@ class Ui{
         void displayMonth(int x, int y, uint8_t size, int num);
         void displayAmPm(int x, int y, uint8_t size, boolean isAM);
         String epochToDate(time_t epoch);
+        void displayBell(void);
 
 
         /// methods for control ssd1306 sleep and wakup

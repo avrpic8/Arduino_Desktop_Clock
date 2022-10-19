@@ -28,8 +28,8 @@ void setup()
     intiPins();
     initTwi();
     initLcd();
-    initWifiModule();
-    initNtpClient();
+    // initWifiModule();
+    // initNtpClient();
     initRtc();
     
     /// start ticker
@@ -466,6 +466,8 @@ void showMainMenu(void){
 
 void showClockPage(){
   display.setTextColor(WHITE, BLACK);
+  if(alarmClock.isAlarmOn()) ui.displayBell();
+  
   while(1){
 
     /// get time from ds1307 rtc
@@ -488,6 +490,7 @@ void showClockPage(){
         alarmClock.stopAlarm();
       }
       ui.displayOn();
+      if(alarmClock.isAlarmOn()) ui.displayBell();
       turnWifiOff();
     }
     if(ui.isDisplayTimeOut()){
@@ -823,21 +826,35 @@ void alarmSet(void){
 }
 
 void showDisplaySetting(void){
-  ui.clearScreen();
-  menu.setMaxIndex(255);
-  menuIdx = 1;  
 
-  while (true)
+  ui.clearScreen();
+  menu.resetMenu(1);
+  menuIdx = 0;
+  ui.printAppBar(30,3, "Display Menu");
+
+  switch (menuIdx)
   {
-    ui.printNumberAt(40, 20, 3, menuIdx, 3);
-    ui.setContrast(menuIdx);
-    ui.updateScreen();  
-    if(menu.checkMenuSwitch() == CLICKED){
-      menu.setMaxIndex(5);
-      menuIdx = 0;
-      ui.clearScreen();
-      ui.enableDefaultFont();
-      return;
-    } 
-  }  
+  case 0:
+    ui.printStringAt(1, 16, "o");
+    ui.printStringAt(10, 16, 2, "T.Out:");
+    ui.printStringAt(120, 20, 1, "S");
+
+    menu.resetMenu(60, 0);
+    menuIdx = 0;
+    while (true)
+    {
+      ui.printNumberAt(90, 16, 2, menuIdx, 2);
+      ui.updateScreen();  
+      if(menu.checkMenuSwitch() == CLICKED){
+        ui.setDisplaySleepTime(menuIdx);
+        menu.resetMenu(1, 0);
+        menuIdx = 1;
+        break;;
+      } 
+    }  
+    break;
+  
+  case 1:
+    break;
+  }
 }

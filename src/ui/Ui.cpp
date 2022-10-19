@@ -77,6 +77,10 @@ String Ui::epochToDate(time_t epoch){
     return currentDate;
 }
 
+void Ui::displayBell(void){
+    _display->drawBitmap(60,0, siren_icon16x16, 16,16, 1);
+}
+
 
 /// methods for control ssd1306 sleep and wakup
 void Ui::displayOff(){

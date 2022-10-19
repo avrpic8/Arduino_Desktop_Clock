@@ -28,7 +28,7 @@ extern "C" {
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-/// fonts
+/// fonts and icons
 #include"customFonts/orbitron_9.h"
 #include<Fonts/FreeMonoOblique9pt7b.h>
 
