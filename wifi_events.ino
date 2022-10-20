@@ -397,6 +397,7 @@ void showMainMenu(void){
             ui.printStringAt(10, 56, "Display", false);
 
             ui.updateScreen();
+            if(menu.checkMenuSwitch() == CLICKED) showWifiSetting();
 
       break;
 
@@ -825,6 +826,76 @@ void alarmSet(void){
   }  
 }
 
+void showWifiSetting(void){
+  ui.clearScreen();
+  menu.resetMenu(1);
+  menuIdx = 0;
+  ui.printAppBar(35,3, "Wifi Menu");
+
+  ui.printStringAt(1, 20, "o");
+  ui.printStringAt(10, 37, 2, "T.Upd: no");
+  ui.printStringAt(0, 55, 1, "<long press to exit>");
+
+  while (true){
+    switch (menuIdx){
+      case 0:
+        ui.printStringAt(10, 16, 2, "T.Ntp: !");
+        while (true){
+          ui.updateScreen();
+          char clickStatus = menu.checkMenuSwitch();
+          if(clickStatus == CLICKED){ 
+            if(!wifiManger.autoConnect("Wifi-Clock")){
+              menu.resetMenu(1, 0);
+              menuIdx = 0;
+              break;   
+            }
+
+            /// connet to ntp 
+            timeClient.begin();
+            timeClient.setTimeOffset(12600);
+            timeClient.setUpdateInterval(0);
+            if(!timeClient.update()){
+              menu.resetMenu(1, 0);
+              menuIdx = 0;
+              break; 
+            }
+
+            /// update rtc
+            rtc.setEpoch(timeClient.getEpochTime()); 
+            turnWifiOff();
+            ui.printStringAt(10, 16, 2, "T.Ntp: Ok");
+            menu.resetMenu(1, 0);
+            menuIdx = 1;
+            break;
+          } 
+          if(clickStatus == LONG_CLICKED){
+            menu.resetMenu(5, 3);
+            menuIdx = 3; 
+            ui.enableDefaultFont();
+            ui.clearScreen();
+            return; 
+          }
+        }  
+        break;
+    
+      case 1:
+        ui.printStringAt(1, 20, 1, " ");
+        ui.printStringAt(1, 40, 1, "o");
+        while (true){ 
+          ui.updateScreen();
+          if(menu.checkMenuSwitch() == CLICKED){
+            menu.resetMenu(5, 3);
+            menuIdx = 3;  
+            ui.enableDefaultFont();
+            ui.clearScreen();
+            return;
+          } 
+        }
+        break;
+    }
+  }  
+}
+
 void showDisplaySetting(void){
 
   ui.clearScreen();
@@ -832,29 +903,47 @@ void showDisplaySetting(void){
   menuIdx = 0;
   ui.printAppBar(30,3, "Display Menu");
 
-  switch (menuIdx)
-  {
-  case 0:
-    ui.printStringAt(1, 16, "o");
-    ui.printStringAt(10, 16, 2, "T.Out:");
-    ui.printStringAt(120, 20, 1, "S");
+  ui.printStringAt(1, 20, "o");
+  ui.printStringAt(10, 16, 2, "T.Out:");
+  ui.printStringAt(117, 20, 1, "S");
 
-    menu.resetMenu(60, 0);
-    menuIdx = 0;
-    while (true)
-    {
-      ui.printNumberAt(90, 16, 2, menuIdx, 2);
-      ui.updateScreen();  
-      if(menu.checkMenuSwitch() == CLICKED){
-        ui.setDisplaySleepTime(menuIdx);
-        menu.resetMenu(1, 0);
-        menuIdx = 1;
-        break;;
-      } 
-    }  
-    break;
-  
-  case 1:
-    break;
-  }
+  ui.printStringAt(10, 37, 2, "D.Ctr:");
+  ui.printNumberAt(90, 37, 2, 0, 3);
+
+  while (true){
+    switch (menuIdx){
+    case 0:
+      menu.resetMenu(60, 1, 1);
+      menuIdx = 1;
+      while (true){
+        ui.printNumberAt(90, 16, 2, menuIdx, 2);
+        ui.updateScreen();  
+        if(menu.checkMenuSwitch() == CLICKED){
+          ui.setDisplaySleepTime(menuIdx);
+          menu.resetMenu(1, 0);
+          menuIdx = 1;
+          break;
+        } 
+      }  
+      break;
+    
+    case 1:
+      ui.printStringAt(1, 20, 1, " ");
+      ui.printStringAt(1, 40, 1, "o");
+      menu.resetMenu(255, 1, 1);
+      while (true){ 
+        ui.printNumberAt(90, 37, 2, menuIdx, 3);
+        ui.setContrast(menuIdx);
+        ui.updateScreen();
+        if(menu.checkMenuSwitch() == CLICKED){
+          menu.resetMenu(5, 2);
+          menuIdx = 4;  
+          ui.enableDefaultFont();
+          ui.clearScreen();
+          return;
+        } 
+      }
+      break;
+    }
+  }  
 }

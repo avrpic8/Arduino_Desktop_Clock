@@ -31,12 +31,24 @@ int MyMenu::readRotEnc(){
     return reResult;
 }
 
-void MyMenu::setMaxIndex(int index){
-    this->_maxMargin = index;
+void MyMenu::setMaxIndex(int maxMargin){
+    this->_maxMargin = maxMargin;
+}
+
+void MyMenu::setMinIndex(int minMargin){
+    this->_minMargin = minMargin;
 }
 
 void MyMenu::setCurrentIndex(int value){
     _menuIndex = value;
+}
+
+int MyMenu::getMaxIndex(void){
+    return this->_maxMargin;    
+}
+
+int MyMenu::getMinIndex(void){
+    return this->_minMargin;    
 }
 
 int MyMenu::getMenuIndex(void) {
@@ -45,12 +57,12 @@ int MyMenu::getMenuIndex(void) {
 
   if (reResult < 0) {             // down
     --_menuIndex;
-    if (_menuIndex < 0)
-      _menuIndex = 0;
+    if (_menuIndex < getMinIndex())
+      _menuIndex = getMinIndex();
   } else if (reResult > 0) {      // up
     _menuIndex++;
-    if(_menuIndex > _maxMargin)
-        _menuIndex = _maxMargin;
+    if(_menuIndex > getMaxIndex())
+        _menuIndex = getMaxIndex();
   }
   return _menuIndex;
 } 
@@ -96,10 +108,18 @@ bool MyMenu::checkForAutoExit(void){
 
 void MyMenu::resetMenu(int maxIndex){
     setMaxIndex(maxIndex);
+    setMinIndex(0);
     setCurrentIndex(0);
 }
 
 void MyMenu::resetMenu(int maxIndex, int currentIndex){
     setMaxIndex(maxIndex);
+    setMinIndex(0);
+    setCurrentIndex(currentIndex);
+}
+
+void MyMenu::resetMenu(int maxIndex, int minIndex, int currentIndex){
+    setMaxIndex(maxIndex);
+    setMinIndex(minIndex);
     setCurrentIndex(currentIndex);
 }
