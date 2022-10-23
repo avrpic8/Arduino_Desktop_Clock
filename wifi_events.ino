@@ -83,6 +83,8 @@ void blinkLED(){
 
 void intiPins(void){
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(TOURCH_PIN, OUTPUT);
+  digitalWrite(TOURCH_PIN, 0);
 }
 
 void initTwi(void){
@@ -242,6 +244,7 @@ void timedLightSleep(){
   
   gpio_pin_wakeup_disable();
   Serial.println("Continue");
+  turnWifiOff();
 }
 
 void enableRotaryMenuInterrupt(void){
@@ -271,7 +274,7 @@ void showMainMenu(void){
 
   ui.disableSleepForDisplay();
   menu.setInputTime(millis());
-  menu.resetMenu(5, 0);
+  menu.resetMenu(7, 0);
   menuIdx = 0;
   enableRotaryMenuInterrupt();
 
@@ -289,171 +292,213 @@ void showMainMenu(void){
     }
     switch (menuIdx) {
       case Home:
-            ui.printStringAt(1, 16, "o");
-            ui.clearDisplayAt(1, 26, " ");
-            ui.clearDisplayAt(1, 36, " ");
-            ui.clearDisplayAt(1, 46, " ");
-            ui.clearDisplayAt(1, 56, " ");
+        ui.printStringAt(1, 16, "o");
+        ui.clearDisplayAt(1, 26, " ");
+        ui.clearDisplayAt(1, 36, " ");
+        ui.clearDisplayAt(1, 46, " ");
+        ui.clearDisplayAt(1, 56, " ");
 
-            display.fillRect(10, 16, 100, 8, BLACK);
-            ui.printStringAt(10, 16, "Home", false);
+        display.fillRect(10, 16, 100, 8, BLACK);
+        ui.printStringAt(10, 16, "Home", false);
 
-            display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "FM radio", false);
+        display.fillRect(10, 26, 100, 8, BLACK);
+        ui.printStringAt(10, 26, "FM radio", false);
 
-            display.fillRect(10, 36, 100, 8, BLACK);
-            ui.printStringAt(10, 36, "Clock set", false);
+        display.fillRect(10, 36, 100, 8, BLACK);
+        ui.printStringAt(10, 36, "Timer", false);
 
-            display.fillRect(10, 46, 100, 8, BLACK);
-            ui.printStringAt(10, 46, "Wifi set", false);
+        display.fillRect(10, 46, 100, 8, BLACK);
+        ui.printStringAt(10, 46, "Torch", false);
 
-            display.fillRect(10, 56, 100, 8, BLACK);
-            ui.printStringAt(10, 56, "Display", false);
+        display.fillRect(10, 56, 100, 8, BLACK);
+        ui.printStringAt(10, 56, "Clock set", false);
 
-            ui.updateScreen();
-
-          if(menu.checkMenuSwitch() == CLICKED){
-            disableRotaryMenuInterrupt();
-            ui.enableSleepForDisplay();
-            ui.clearScreen();
-            return;
-          }
+        ui.updateScreen();
+        if(menu.checkMenuSwitch() == CLICKED){
+          disableRotaryMenuInterrupt();
+          ui.enableSleepForDisplay();
+          ui.clearScreen();
+          return;
+        }
         break;
 
       case FM_RADIO:
- 
-            ui.clearDisplayAt(1, 16, " ");
-            ui.printStringAt(1, 26, "o");
-            ui.clearDisplayAt(1, 36, " ");
-            ui.clearDisplayAt(1, 46, " ");
-            ui.clearDisplayAt(1, 56, " ");
+        ui.clearDisplayAt(1, 16, " ");
+        ui.printStringAt(1, 26, "o");
+        ui.clearDisplayAt(1, 36, " ");
+        ui.clearDisplayAt(1, 46, " ");
+        ui.clearDisplayAt(1, 56, " ");
 
-            display.fillRect(10, 16, 100, 8, BLACK);
-            ui.printStringAt(10, 16, "Home", false);
+        display.fillRect(10, 16, 100, 8, BLACK);
+        ui.printStringAt(10, 16, "Home", false);
 
-            display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "FM radio", false);
+        display.fillRect(10, 26, 100, 8, BLACK);
+        ui.printStringAt(10, 26, "FM radio", false);
 
-            display.fillRect(10, 36, 100, 8, BLACK);
-            ui.printStringAt(10, 36, "Clock set", false);
+        display.fillRect(10, 36, 100, 8, BLACK);
+        ui.printStringAt(10, 36, "Timer", false);
 
-            display.fillRect(10, 46, 100, 8, BLACK);
-            ui.printStringAt(10, 46, "Wifi set", false);
+        display.fillRect(10, 46, 100, 8, BLACK);
+        ui.printStringAt(10, 46, "Torch", false);
 
-            display.fillRect(10, 56, 100, 8, BLACK);
-            ui.printStringAt(10, 56, "Display", false);
-            ui.updateScreen();
+        display.fillRect(10, 56, 100, 8, BLACK);
+        ui.printStringAt(10, 56, "Clock set", false);
+        ui.updateScreen();
+        break;
+
+      case TIMER:
+        ui.clearDisplayAt(1, 16, " ");
+        ui.clearDisplayAt(1, 26, " ");
+        ui.printStringAt(1, 36, "o");
+        ui.clearDisplayAt(1, 46, " ");
+        ui.clearDisplayAt(1, 56, " ");
+
+        display.fillRect(10, 16, 100, 8, BLACK);
+        ui.printStringAt(10, 16, "Home", false);
+
+        display.fillRect(10, 26, 100, 8, BLACK);
+        ui.printStringAt(10, 26, "FM radio", false);
+
+        display.fillRect(10, 36, 100, 8, BLACK);
+        ui.printStringAt(10, 36, "Timer", false);
+
+        display.fillRect(10, 46, 100, 8, BLACK);
+        ui.printStringAt(10, 46, "Torch", false);
+
+        display.fillRect(10, 56, 100, 8, BLACK);
+        ui.printStringAt(10, 56, "Clock set", false);
+        ui.updateScreen();
+        break;
+
+      case TORCH:
+        ui.clearDisplayAt(1, 16, " ");
+        ui.clearDisplayAt(1, 26, " ");
+        ui.clearDisplayAt(1, 36, " ");
+        ui.printStringAt(1, 46, "o");
+        ui.clearDisplayAt(1, 56, " ");
+
+        display.fillRect(10, 16, 100, 8, BLACK);
+        ui.printStringAt(10, 16, "Home", false);
+
+        display.fillRect(10, 26, 100, 8, BLACK);
+        ui.printStringAt(10, 26, "FM radio", false);
+
+        display.fillRect(10, 36, 100, 8, BLACK);
+        ui.printStringAt(10, 36, "Timer", false);
+
+        display.fillRect(10, 46, 100, 8, BLACK);
+        ui.printStringAt(10, 46, "Torch", false);
+
+        display.fillRect(10, 56, 100, 8, BLACK);
+        ui.printStringAt(10, 56, "Clock set", false);
+        ui.updateScreen();
+        if(menu.checkMenuSwitch() == CLICKED){
+          ui.enableSleepForDisplay();
+          showTourchPage();
+        } 
         break;
 
       case CLOCK_SETTING:
- 
-            ui.clearDisplayAt(1, 16, " ");
-            ui.clearDisplayAt(1, 26, " ");
-            ui.printStringAt(1, 36, "o");
-            ui.clearDisplayAt(1, 46, " ");
-            ui.clearDisplayAt(1, 56, " ");
+        ui.clearDisplayAt(1, 16, " ");
+        ui.clearDisplayAt(1, 26, " ");
+        ui.clearDisplayAt(1, 36, " ");
+        ui.clearDisplayAt(1, 46, " ");
+        ui.printStringAt(1, 56, "o");
 
-            display.fillRect(10, 16, 100, 8, BLACK);
-            ui.printStringAt(10, 16, "Home", false);
+        display.fillRect(10, 16, 100, 8, BLACK);
+        ui.printStringAt(10, 16, "Home", false);
 
-            display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "FM radio", false);
+        display.fillRect(10, 26, 100, 8, BLACK);
+        ui.printStringAt(10, 26, "FM radio", false);
 
-            display.fillRect(10, 36, 100, 8, BLACK);
-            ui.printStringAt(10, 36, "Clock set", false);
+        display.fillRect(10, 36, 100, 8, BLACK);
+        ui.printStringAt(10, 36, "Timer", false);
 
-            display.fillRect(10, 46, 100, 8, BLACK);
-            ui.printStringAt(10, 46, "Wifi set", false);
+        display.fillRect(10, 46, 100, 8, BLACK);
+        ui.printStringAt(10, 46, "Torch", false);
 
-            display.fillRect(10, 56, 100, 8, BLACK);
-            ui.printStringAt(10, 56, "Display", false);
+        display.fillRect(10, 56, 100, 8, BLACK);
+        ui.printStringAt(10, 56, "Clock set", false);
 
-            ui.updateScreen();
-            if(menu.checkMenuSwitch() == CLICKED) showClockSetting();
-      
+        ui.updateScreen();
+        if(menu.checkMenuSwitch() == CLICKED) showClockSetting();
         break;
 
       case WIFI_SETTING:
+        ui.clearDisplayAt(1, 16, " ");
+        ui.clearDisplayAt(1, 26, " ");
+        ui.clearDisplayAt(1, 36, " ");
+        ui.clearDisplayAt(1, 46, " ");
+        ui.printStringAt(1, 56, "o");
 
-            ui.clearDisplayAt(1, 16, " ");
-            ui.clearDisplayAt(1, 26, " ");
-            ui.clearDisplayAt(1, 36, " ");
-            ui.printStringAt(1, 46, "o");
-            ui.clearDisplayAt(1, 56, " ");
+        display.fillRect(10, 16, 100, 8, BLACK);
+        ui.printStringAt(10, 16, "FM radio", false);
 
-            display.fillRect(10, 16, 100, 8, BLACK);
-            ui.printStringAt(10, 16, "Home", false);
+        display.fillRect(10, 26, 100, 8, BLACK);
+        ui.printStringAt(10, 26, "Timer", false);
 
-            display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "FM radio", false);
+        display.fillRect(10, 36, 100, 8, BLACK);
+        ui.printStringAt(10, 36, "Torch", false);
 
-            display.fillRect(10, 36, 100, 8, BLACK);
-            ui.printStringAt(10, 36, "Clock set", false);
+        display.fillRect(10, 46, 100, 8, BLACK);
+        ui.printStringAt(10, 46, "Clock set", false);
 
-            display.fillRect(10, 46, 100, 8, BLACK);
-            ui.printStringAt(10, 46, "Wifi set", false);
+        display.fillRect(10, 56, 100, 8, BLACK);
+        ui.printStringAt(10, 56, "Wifi set", false);
 
-            display.fillRect(10, 56, 100, 8, BLACK);
-            ui.printStringAt(10, 56, "Display", false);
-
-            ui.updateScreen();
-            if(menu.checkMenuSwitch() == CLICKED) showWifiSetting();
-
-      break;
+        ui.updateScreen();
+        if(menu.checkMenuSwitch() == CLICKED) showWifiSetting();
+        break;
 
       case DISPLAY:
+        ui.clearDisplayAt(1, 16, " ");
+        ui.clearDisplayAt(1, 26, " ");
+        ui.clearDisplayAt(1, 36, " ");
+        ui.clearDisplayAt(1, 46, " ");
+        ui.printStringAt(1, 56, "o");
 
-            ui.clearDisplayAt(1, 16, " ");
-            ui.clearDisplayAt(1, 26, " ");
-            ui.clearDisplayAt(1, 36, " ");
-            ui.clearDisplayAt(1, 46, " ");
-            ui.printStringAt(1, 56, "o");
+        display.fillRect(10, 16, 100, 8, BLACK);
+        ui.printStringAt(10, 16, "Timer", false);
 
-            display.fillRect(10, 16, 100, 8, BLACK);
-            ui.printStringAt(10, 16, "Home", false);
+        display.fillRect(10, 26, 100, 8, BLACK);
+        ui.printStringAt(10, 26, "Torch", false);
 
-            display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "FM radio", false);
+        display.fillRect(10, 36, 100, 8, BLACK);
+        ui.printStringAt(10, 36, "Clock set", false);
 
-            display.fillRect(10, 36, 100, 8, BLACK);
-            ui.printStringAt(10, 36, "Clock set", false);
+        display.fillRect(10, 46, 100, 8, BLACK);
+        ui.printStringAt(10, 46, "Wifi set", false);
 
-            display.fillRect(10, 46, 100, 8, BLACK);
-            ui.printStringAt(10, 46, "Wifi set", false);
+        display.fillRect(10, 56, 100, 8, BLACK);
+        ui.printStringAt(10, 56, "Display", false);
 
-            display.fillRect(10, 56, 100, 8, BLACK);
-            ui.printStringAt(10, 56, "Display", false);
-
-            ui.updateScreen();
-            if(menu.checkMenuSwitch() == CLICKED) showDisplaySetting();
- 
+        ui.updateScreen();
+        if(menu.checkMenuSwitch() == CLICKED) showDisplaySetting();
         break;
 
       case EXIT:
- 
-            ui.clearDisplayAt(1, 16, " ");
-            ui.clearDisplayAt(1, 26, " ");
-            ui.clearDisplayAt(1, 36, " ");
-            ui.clearDisplayAt(1, 46, " ");
-            ui.printStringAt(1, 56, "o");
+        ui.clearDisplayAt(1, 16, " ");
+        ui.clearDisplayAt(1, 26, " ");
+        ui.clearDisplayAt(1, 36, " ");
+        ui.clearDisplayAt(1, 46, " ");
+        ui.printStringAt(1, 56, "o");
 
-            display.fillRect(10, 16, 100, 8, BLACK);
-            ui.printStringAt(10, 16, "FM radio", false);
+        display.fillRect(10, 16, 100, 8, BLACK);
+        ui.printStringAt(10, 16, "Torch", false);
 
-            display.fillRect(10, 26, 100, 8, BLACK);
-            ui.printStringAt(10, 26, "Clock set", false);
+        display.fillRect(10, 26, 100, 8, BLACK);
+        ui.printStringAt(10, 26, "Clock set", false);
 
-            display.fillRect(10, 36, 100, 8, BLACK);
-            ui.printStringAt(10, 36, "Wifi set", false);
+        display.fillRect(10, 36, 100, 8, BLACK);
+        ui.printStringAt(10, 36, "Wifi set", false);
 
-            display.fillRect(10, 46, 100, 8, BLACK);
-            ui.printStringAt(10, 46, "Display", false);
+        display.fillRect(10, 46, 100, 8, BLACK);
+        ui.printStringAt(10, 46, "Display", false);
 
-            display.fillRect(10, 56, 100, 8, BLACK);
-            ui.printStringAt(10, 56, "Exit", false);
+        display.fillRect(10, 56, 100, 8, BLACK);
+        ui.printStringAt(10, 56, "Exit", false);
 
-            ui.updateScreen();
-
+        ui.updateScreen();
         if(menu.checkMenuSwitch() == CLICKED){
             disableRotaryMenuInterrupt();
             ui.clearScreen();
@@ -463,6 +508,38 @@ void showMainMenu(void){
         break;
     }
   }
+}
+
+void showTourchPage(void){
+  ui.clearScreen();
+  int tourchState = 1;
+  while (true)
+  { 
+    char clickStatus = menu.checkMenuSwitch();
+    if(clickStatus == LONG_CLICKED){
+      ui.enableDefaultFont();
+      ui.clearScreen();
+      menu.resetMenu(7, 3);
+      menuIdx = 3;
+      return;
+    }
+    if(clickStatus == CLICKED){
+      ui.clearScreen();
+      tourchState = digitalRead(TOURCH_PIN);
+      ui.checkLightState(tourchState);
+      Serial.println(tourchState);
+      digitalWrite(TOURCH_PIN, !tourchState);
+    }  
+    if(ui.isDisplayTimeOut()){
+      ui.displayOff();
+      lightSleep();
+      turnWifiOff();
+      ui.displayOn();
+    }
+    ui.printStringAt(0, 0, 2, "Tourch");
+    ui.checkLightState(tourchState);
+    ui.updateScreen();
+  } 
 }
 
 void showClockPage(){
@@ -519,7 +596,7 @@ void showClockPage(){
     ui.showTemprature(110, 55, 1, tempC);
     ui.updateScreen();    
 
-    if(!ui.isDisplayOn()){
+    if(!ui.isDisplayOn() && alarmClock.isAlarmOn()){
       timedLightSleep();
     }
   }
@@ -527,7 +604,7 @@ void showClockPage(){
 
 void showClockSetting(void){
   ui.clearScreen();
-  menu.setMaxIndex(3);
+  menu.resetMenu(3, 0);
   menuIdx = 0;
 
   while(true){
@@ -570,8 +647,8 @@ void showClockSetting(void){
       ui.clearDisplayAt(1, 46, "o");
       ui.updateScreen();
       if(menu.checkMenuSwitch() == CLICKED){
-        menu.resetMenu(5, 2);
-        menuIdx = 2;  
+        menu.resetMenu(7, 4);
+        menuIdx = 4;  
         ui.clearScreen();
         return;
       }
@@ -844,6 +921,8 @@ void showWifiSetting(void){
           ui.updateScreen();
           char clickStatus = menu.checkMenuSwitch();
           if(clickStatus == CLICKED){ 
+            ui.printStringAt(10, 16, 2, "T.Ntp: ?");
+            ui.updateScreen();
             if(!wifiManger.autoConnect("Wifi-Clock")){
               menu.resetMenu(1, 0);
               menuIdx = 0;
@@ -884,8 +963,8 @@ void showWifiSetting(void){
         while (true){ 
           ui.updateScreen();
           if(menu.checkMenuSwitch() == CLICKED){
-            menu.resetMenu(5, 3);
-            menuIdx = 3;  
+            menu.resetMenu(7, 5);
+            menuIdx = 5;  
             ui.enableDefaultFont();
             ui.clearScreen();
             return;
@@ -936,8 +1015,8 @@ void showDisplaySetting(void){
         ui.setContrast(menuIdx);
         ui.updateScreen();
         if(menu.checkMenuSwitch() == CLICKED){
-          menu.resetMenu(5, 2);
-          menuIdx = 4;  
+          menu.resetMenu(7, 6);
+          menuIdx = 6;  
           ui.enableDefaultFont();
           ui.clearScreen();
           return;

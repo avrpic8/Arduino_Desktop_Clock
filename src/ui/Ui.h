@@ -21,6 +21,9 @@ class Ui{
         void displayAmPm(int x, int y, uint8_t size, boolean isAM);
         String epochToDate(time_t epoch);
         void displayBell(void);
+        void displayTourchOn(void);
+        void displayTourchOff(void);
+        void checkLightState(int state);
 
 
         /// methods for control ssd1306 sleep and wakup

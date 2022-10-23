@@ -81,6 +81,26 @@ void Ui::displayBell(void){
     _display->drawBitmap(60,0, siren_icon16x16, 16,16, 1);
 }
 
+void Ui::displayTourchOn(void){
+    _display->drawBitmap(50,25, tourch_on32x16, 28,16, 1); 
+}
+
+void Ui::displayTourchOff(void){
+    _display->drawBitmap(50,25, tourch_off32x16, 28,16, 1); 
+}
+
+void Ui::checkLightState(int state){
+    switch (state){
+        case 0:
+            displayTourchOn();
+            break;
+        
+        case 1:
+            displayTourchOff();
+            break;
+    }
+}
+
 
 /// methods for control ssd1306 sleep and wakup
 void Ui::displayOff(){
@@ -103,7 +123,8 @@ void Ui::displayOff(){
     
     _displayTimeOut = false;
     _displayOn = false;
-    _display->ssd1306_command(SSD1306_DISPLAYOFF);    
+    _display->ssd1306_command(SSD1306_DISPLAYOFF); 
+    clearScreen();  
 
 }
 
