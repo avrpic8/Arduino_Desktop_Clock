@@ -35,6 +35,7 @@ void setup()
     /// start ticker
     ledTicker.attach(1, blinkLED);
     alarmClock = Alarm(&alarmOn, &alarmOff, D3);
+    myTimer    = Alarm(&timerAlarmOn, &timerAlarmOff, D3);
     sensor.begin();
 
     turnWifiOff();
@@ -65,6 +66,13 @@ void alarmOff(){
   Serial.println("Alarm off");
 }
 
+void timerAlarmOn(){
+  myTimer.disableAlarmEvent();
+  Serial.println("Timer finished");
+}
+void timerAlarmOff(){
+}
+
 void loop()
 { 
   showClockPage();
@@ -79,6 +87,18 @@ void blinkLED(){
   digitalWrite(LED_BUILTIN, !state);
   ui.checkDisplaySleep();
   tempSampleConnter++;
+
+  if(allowCountDown){
+    secCounter--;
+    if(secCounter == 0){
+      if(minuteCounter > 0) minuteCounter--;
+      if(secCounter == 0 && minuteCounter == 0){
+        allowCountDown = false;
+        return;
+      }
+      secCounter = 59;
+    }  
+  }
 }
 
 void intiPins(void){
@@ -244,7 +264,6 @@ void timedLightSleep(){
   
   gpio_pin_wakeup_disable();
   Serial.println("Continue");
-  turnWifiOff();
 }
 
 void enableRotaryMenuInterrupt(void){
@@ -368,6 +387,10 @@ void showMainMenu(void){
         display.fillRect(10, 56, 100, 8, BLACK);
         ui.printStringAt(10, 56, "Clock set", false);
         ui.updateScreen();
+        if(menu.checkMenuSwitch() == CLICKED){
+          ui.disableSleepForDisplay();
+          showTimerPage();
+        }
         break;
 
       case TORCH:
@@ -510,6 +533,153 @@ void showMainMenu(void){
   }
 }
 
+void showTimerPage(void){
+  
+  ui.clearScreen();
+  menu.resetMenu(3, 0);
+  menuIdx = 0;
+
+  ui.printStringAt(1, 5, "o");
+  ui.printStringAt(10, 5, 1, "Exit");
+  ui.printStringAt(50, 5, 1, "Start");
+  //ui.printStringAt(95, 0, 1, "Reset");
+  ui.showBatteryPercentage(getBatteryLevel());
+
+  ui.displayMin(10,22,4, 0);
+  ui.displayColon(54, 30,3);
+  ui.displaySec(67,22,4, 0);
+
+  ui.enableDefaultFont();
+
+  SET:
+    while (true)
+    {
+      switch (menuIdx){
+        case 0:
+          ui.printStringAt(1, 5, "o");
+          ui.printStringAt(42, 5, " ");
+          //ui.printStringAt(85, 0, " ");
+          ui.printStringAt(25, 53, " ");
+          ui.printStringAt(90, 53, " ");
+
+          ui.updateScreen();
+          if(menu.checkMenuSwitch() == CLICKED){
+            resetTimer();
+            ui.clearScreen();
+            menu.resetMenu(7, 2);
+            menuIdx = 2;
+            return;
+          }
+          break;
+        
+        case 1:
+          ui.printStringAt(1, 5, " ");
+          ui.printStringAt(42, 5, "o");
+          //ui.printStringAt(85, 0, "o");
+          ui.printStringAt(25, 53, " ");
+          ui.printStringAt(90, 53, " ");
+
+          ui.updateScreen();
+          if(menu.checkMenuSwitch() == CLICKED){
+            if((minuteCounter == 0 && secCounter > 0) || (minuteCounter > 0 && secCounter == 0) || (minuteCounter > 0 && secCounter > 0)){
+              myTimer.setWhenAlarmOn(0, 0, 0);
+              allowCountDown = true;
+              goto WORK;
+            } 
+          }
+          break;
+
+        // case 2:
+        //   ui.printStringAt(1, 0, " ");
+        //   ui.printStringAt(40, 0, " ");
+        //   ui.printStringAt(85, 0, "o");
+        //   ui.printStringAt(25, 53, " ");
+        //   ui.printStringAt(90, 53, " ");
+        //   ui.updateScreen();
+        //   break;
+
+        case 2:
+          ui.printStringAt(1, 5, " ");
+          ui.printStringAt(42, 5, " ");
+          //ui.printStringAt(85, 0, " ");
+          ui.printStringAt(25, 53, "o");
+          ui.printStringAt(90, 53, " ");
+
+          ui.updateScreen();
+          if(menu.checkMenuSwitch() == CLICKED){
+            menu.resetMenu(59, 0, 0);
+            menuIdx = 0;
+            while (true)
+            { 
+              minuteCounter = menuIdx;
+              ui.displayMin(10,22,4, minuteCounter);
+              ui.updateScreen();
+              if(menu.checkMenuSwitch() == CLICKED){
+                menu.resetMenu(3, 2);
+                menuIdx = 2; 
+                ui.enableDefaultFont();
+                break; 
+              }
+            }
+          }
+          break;
+
+        case 3:
+          ui.printStringAt(1, 5, " ");
+          ui.printStringAt(42, 5, " ");
+          //ui.printStringAt(85, 0, " ");
+          ui.printStringAt(25, 53, " ");
+          ui.printStringAt(90, 53, "o");
+
+          ui.updateScreen();
+          if(menu.checkMenuSwitch() == CLICKED){
+            menu.resetMenu(59, 0, 0);
+            menuIdx = 0;
+            while (true)
+            {
+              secCounter = menuIdx;
+              ui.displaySec(67,22,4, secCounter);
+              ui.updateScreen();
+              if(menu.checkMenuSwitch() == CLICKED){
+                menu.resetMenu(3, 3);
+                menuIdx = 3; 
+                ui.enableDefaultFont();
+                break; 
+              }
+            }
+          }
+          break;
+      } 
+    }
+
+  WORK:
+    while (true)
+  {
+    ui.displayMin(10,22,4, minuteCounter);
+    ui.displaySec(67,22,4, secCounter);
+
+    ui.enableDefaultFont();
+    ui.showBatteryPercentage(getBatteryLevel());
+    ui.updateScreen();
+
+    myTimer.tick(0, minuteCounter, secCounter);
+    if(menu.checkMenuSwitch() == LONG_CLICKED){
+      resetTimer();
+      goto SET;
+    }
+  } 
+}
+
+void resetTimer(){
+  ui.displayMin(10,22,4, 0);
+  ui.displaySec(67,22,4, 0); 
+  ui.enableDefaultFont();
+  myTimer.enableAlarmEvent();
+  minuteCounter = 0;
+  secCounter = 0;
+  allowCountDown = false;
+}
+
 void showTourchPage(void){
   ui.clearScreen();
   int tourchState = 1;
@@ -538,6 +708,7 @@ void showTourchPage(void){
     }
     ui.printStringAt(0, 0, 2, "Tourch");
     ui.checkLightState(tourchState);
+    ui.showBatteryPercentage(getBatteryLevel());
     ui.updateScreen();
   } 
 }

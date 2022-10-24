@@ -59,6 +59,7 @@ Ui ui;
 
 /// alarm clock
 Alarm alarmClock;
+Alarm myTimer;
 
 
 /// ntp
@@ -69,6 +70,8 @@ NTPClient timeClient(ntpUDP, NTP_SERVER, 0, 60000);
 /// rtc
 ErriezDS1307 rtc;
 uint32 rtcUpdateCounter = 0;
+char minuteCounter =0, secCounter = 0;  /// int timer page
+bool allowCountDown = false;
 
 
 /// oneWire ds18b20
