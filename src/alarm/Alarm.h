@@ -3,7 +3,7 @@
 
 /// if not exist error occurd
 #include<Arduino.h>
-#include<EasyBuzzer.h>
+#include"../definition.h"
 
 class Alarm
 {
@@ -42,6 +42,8 @@ private:
 
     void (*_handlerOn)(); //!< Alarm on handler
     void (*_handlerOff)(); //!< Alarm off handler
+
+    uint8 _buzzerPin;
 };
 
 #endif

@@ -5,6 +5,11 @@ Alarm::Alarm(void){}
 Alarm::Alarm(void (*on)(), void (*off)(), int buzzerPin):
  _handlerOn(on), _handlerOff(off)
 {
+    this->_buzzerPin = buzzerPin;
+    pinMode(buzzerPin, OUTPUT);
+
+    analogWriteFreq(PWM_FREQ);
+    analogWrite(_buzzerPin, 0);
 }
 
 void Alarm::turnAlarm(bool state){
@@ -40,11 +45,18 @@ void Alarm::tick(uint8 hour, uint8 minute, uint8 second){
 }
 
 void Alarm::playAlarm(){
+
+    analogWrite(_buzzerPin, 100);
     _alarmIsRunning = true;
 }
 
 void Alarm::stopAlarm(){
+    analogWrite(_buzzerPin, 0);
     _alarmIsRunning = false;
+}
+
+void Alarm::alarmUpdate(void){
+    
 }
 
 bool Alarm::isAlarmRunning(void){

@@ -14,7 +14,7 @@ void initRtc(void);
 void updateRTC(void);
 void enableRotaryMenuInterrupt(void);
 void disableRotaryMenuInterrupt(void);
-float getTemprature(void);
+//float getTemprature(void);
 char getBatteryLevel(void);
 void lightSleep(void);
 void timedLightSleep(void);
@@ -44,9 +44,9 @@ void setup()
     
     /// start ticker
     ledTicker.attach(1, blinkLED);
-    alarmClock = Alarm(&alarmOn, &alarmOff, D3);
-    myTimer    = Alarm(&timerAlarmOn, &timerAlarmOff, D3);
-    sensor.begin();
+    alarmClock = Alarm(&alarmOn, &alarmOff, BUZZER);
+    myTimer    = Alarm(&timerAlarmOn, &timerAlarmOff, BUZZER);
+    //sensor.begin();
 
     turnWifiOff();
     ui.clearScreen();  
@@ -292,11 +292,11 @@ char getBatteryLevel(void){
   return result;
 }
 
-float getTemprature(void){
-  sensor.requestTemperatures();
-  float tempC = sensor.getTempCByIndex(0);
-  return tempC;
-}
+// float getTemprature(void){
+//   sensor.requestTemperatures();
+//   float tempC = sensor.getTempCByIndex(0);
+//   return tempC;
+// }
 
 void showMainMenu(void){
 
@@ -725,7 +725,7 @@ void showClockPage(){
 
     if(++tempSampleConnter == TEMP_SAMPLE_TIME){
       tempSampleConnter = 0;
-      tempC = getTemprature();
+      //tempC = getTemprature();
     }
 
     char clickStatus = menu.checkMenuSwitch();
@@ -752,7 +752,7 @@ void showClockPage(){
     if(alarmClock.isAlarmOn()){
       alarmClock.tick(hour, min, sec);
       if(alarmClock.isAlarmRunning()){
-        //alarmClock.alarmUpdate();
+        alarmClock.alarmUpdate();
       }
     }
 
@@ -763,7 +763,7 @@ void showClockPage(){
     ui.displaySec(102, 35, 2, sec);
     ui.displayDate(0, 55, 1, ui.epochToDate(rtc.getEpoch()));
     ui.showBatteryPercentage(getBatteryLevel());
-    ui.showTemprature(110, 55, 1, tempC);
+    ui.showTemprature(110, 55, 1, 25);
     ui.updateScreen();    
 
     if(!ui.isDisplayOn() && alarmClock.isAlarmOn()){

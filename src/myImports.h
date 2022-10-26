@@ -75,7 +75,7 @@ bool allowCountDown = false;
 
 
 /// oneWire ds18b20
-OneWire onewire(ONEWIRE_BUS);
-DallasTemperature sensor(&onewire);
+//OneWire onewire(ONEWIRE_BUS);
+//DallasTemperature sensor(&onewire);
 char tempC = 0;
 char tempSampleConnter = 0;

@@ -9,7 +9,8 @@
 #define PIN_ROTARY_IN2 D6
 #define PIN_SW  D7
 
-#define ONEWIRE_BUS D5
+//#define ONEWIRE_BUS D5
+#define BUZZER D5
 
 #define TOURCH_PIN D8
 
@@ -19,6 +20,11 @@
 
 /// onewire
 #define TEMP_SAMPLE_TIME 2
+
+
+/// Pwm
+#define PWM_FREQ 2000
+
 
 /// alarm state
 #define ON true
