@@ -36,3 +36,8 @@
 
 #define CLICKED 1
 #define LONG_CLICKED 2
+
+
+
+/// timer start checker
+#define START_CHECK  (minuteCounter == 0 && secCounter > 0) || (minuteCounter > 0 && secCounter == 0) || (minuteCounter > 0 && secCounter > 0)

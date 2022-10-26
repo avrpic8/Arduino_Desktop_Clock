@@ -1,12 +1,12 @@
 #include "src/myImports.h"
 
 /// function definition
-void onEspConnected(const WiFiEventStationModeConnected& event);
-void onEspDisconnected(const WiFiEventStationModeDisconnected& event);
 void blinkLED();
 void intiPins(void);
 void initTwi(void);
 void initLcd(void);
+void onEspConnected(const WiFiEventStationModeConnected& event);
+void onEspDisconnected(const WiFiEventStationModeDisconnected& event);
 void tryConnectToWifi(void);
 void initWifiModule(void);
 bool initNtpClient(void);
@@ -14,12 +14,22 @@ void initRtc(void);
 void updateRTC(void);
 void enableRotaryMenuInterrupt(void);
 void disableRotaryMenuInterrupt(void);
+float getTemprature(void);
+char getBatteryLevel(void);
+void lightSleep(void);
+void timedLightSleep(void);
 void showMainMenu(void);
+void showTimerPage(void);
+void resetTimer();
+void showTourchPage(void);
 void showClockPage(void);
 void showClockSetting(void);
 void showClockSettingTitles(void);
 void timeSet(void);
 void dateSet(void);
+void alarmSet(void);
+void showWifiSetting(void);
+void showDisplaySetting(void);
 
 void setup()
 {
@@ -91,7 +101,7 @@ void blinkLED(){
   if(allowCountDown){
     if(secCounter == 0 && minuteCounter > 0){
       minuteCounter--;
-      secCounter = 59;
+      secCounter = 60;
     }else if(secCounter == 0 && minuteCounter == 0){
       allowCountDown = false;
       return;
@@ -533,7 +543,7 @@ void showMainMenu(void){
 }
 
 void showTimerPage(void){
-  
+
   ui.clearScreen();
   menu.resetMenu(3, 0);
   menuIdx = 0;
@@ -541,7 +551,6 @@ void showTimerPage(void){
   ui.printStringAt(1, 5, "o");
   ui.printStringAt(10, 5, 1, "Exit");
   ui.printStringAt(50, 5, 1, "Start");
-  //ui.printStringAt(95, 0, 1, "Reset");
   ui.showBatteryPercentage(getBatteryLevel());
 
   ui.displayMin(10,22,4, 0);
@@ -580,22 +589,13 @@ void showTimerPage(void){
 
           ui.updateScreen();
           if(menu.checkMenuSwitch() == CLICKED){
-            if((minuteCounter == 0 && secCounter > 0) || (minuteCounter > 0 && secCounter == 0) || (minuteCounter > 0 && secCounter > 0)){
+            if(START_CHECK){
               myTimer.setWhenAlarmOn(0, 0, 0);
               allowCountDown = true;
               goto WORK;
             } 
           }
           break;
-
-        // case 2:
-        //   ui.printStringAt(1, 0, " ");
-        //   ui.printStringAt(40, 0, " ");
-        //   ui.printStringAt(85, 0, "o");
-        //   ui.printStringAt(25, 53, " ");
-        //   ui.printStringAt(90, 53, " ");
-        //   ui.updateScreen();
-        //   break;
 
         case 2:
           ui.printStringAt(1, 5, " ");
