@@ -1,8 +1,7 @@
 #ifndef Alarm_h
 #define Alarm_h
 
-/// if not exist error occurd
-#include<Arduino.h>
+#include<Arduino.h>   /// if not exist error occurd
 #include"../definition.h"
 
 class Alarm
@@ -26,6 +25,8 @@ public:
 
     void enableAlarmEvent(void);
     void disableAlarmEvent(void);
+
+    void toggleBuzzer(bool state);
 
 private:
     uint8_t _hourOn = 0;        //!< Alarm hour

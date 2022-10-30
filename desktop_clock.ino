@@ -78,6 +78,7 @@ void alarmOff(){
 
 void timerAlarmOn(){
   myTimer.disableAlarmEvent();
+  myTimer.playAlarm();
   Serial.println("Timer finished");
 }
 void timerAlarmOff(){
@@ -239,6 +240,7 @@ void onEspDisconnected(const WiFiEventStationModeDisconnected& event){
 
 void lightSleep(){
   digitalWrite(LED_BUILTIN, 1);
+  digitalWrite(BUZZER, 0);
   ledTicker.detach();
   Serial.println("Going to ligth sleep");
 
@@ -258,6 +260,7 @@ void lightSleep(){
 
 void timedLightSleep(){
   digitalWrite(LED_BUILTIN, 1);
+  digitalWrite(BUZZER, 0);
   ledTicker.detach();
   Serial.println("Going to timed light sleep");
 
@@ -590,6 +593,7 @@ void showTimerPage(void){
           ui.updateScreen();
           if(menu.checkMenuSwitch() == CLICKED){
             if(START_CHECK){
+              ui.printStringAt(50, 5, 1, "Stop ");
               myTimer.setWhenAlarmOn(0, 0, 0);
               allowCountDown = true;
               goto WORK;
@@ -662,6 +666,7 @@ void showTimerPage(void){
     ui.updateScreen();
 
     myTimer.tick(0, minuteCounter, secCounter);
+    if(myTimer.isAlarmRunning()) myTimer.alarmUpdate();
     if(menu.checkMenuSwitch() == LONG_CLICKED){
       resetTimer();
       goto SET;
@@ -674,9 +679,12 @@ void resetTimer(){
   ui.displaySec(67,22,4, 0); 
   ui.enableDefaultFont();
   myTimer.enableAlarmEvent();
+  ui.printStringAt(50, 5, 1, "Start");
+
   minuteCounter = 0;
   secCounter = 0;
   allowCountDown = false;
+  myTimer.stopAlarm();
 }
 
 void showTourchPage(void){
@@ -743,9 +751,10 @@ void showClockPage(){
     }
     if(ui.isDisplayTimeOut()){
       ui.displayOff();
-      if(alarmClock.isAlarmOn()){
+      if(alarmClock.isAlarmOn() && !alarmClock.isAlarmRunning()){
         timedLightSleep();
-      }else{
+      }
+      if(!alarmClock.isAlarmOn()){
         lightSleep();
       }
     }
@@ -766,7 +775,7 @@ void showClockPage(){
     ui.showTemprature(110, 55, 1, 25);
     ui.updateScreen();    
 
-    if(!ui.isDisplayOn() && alarmClock.isAlarmOn()){
+    if(!ui.isDisplayOn() && alarmClock.isAlarmOn() && !alarmClock.isAlarmRunning()){
       timedLightSleep();
     }
   }

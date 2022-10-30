@@ -45,18 +45,34 @@ void Alarm::tick(uint8 hour, uint8 minute, uint8 second){
 }
 
 void Alarm::playAlarm(){
-
-    analogWrite(_buzzerPin, 100);
     _alarmIsRunning = true;
 }
 
 void Alarm::stopAlarm(){
-    analogWrite(_buzzerPin, 0);
     _alarmIsRunning = false;
 }
 
 void Alarm::alarmUpdate(void){
-    
+
+    static bool switchBuzzer = false;
+    static bool startSmallPeriodCounter = false; 
+
+    static char longPeriodCounter = 0;
+    static char smallPeriodCounter = 0;
+
+    if(_alarmIsRunning){
+        if(++longPeriodCounter == 30){
+            longPeriodCounter = 0;
+            startSmallPeriodCounter = ! startSmallPeriodCounter;         
+        }
+        if(startSmallPeriodCounter){
+            if(++smallPeriodCounter == 3){
+                smallPeriodCounter = 0;
+                switchBuzzer = !switchBuzzer;
+            } 
+        }
+        toggleBuzzer(switchBuzzer);    
+    }   
 }
 
 bool Alarm::isAlarmRunning(void){
@@ -77,4 +93,12 @@ void Alarm::enableAlarmEvent(void){
 
 void Alarm::disableAlarmEvent(void){
     _alarmEvent = false;
+}
+
+void Alarm::toggleBuzzer(bool state){
+    if(state){
+        analogWrite(_buzzerPin, 100);
+    }else{
+        analogWrite(_buzzerPin, 0);
+    }
 }
