@@ -50,6 +50,7 @@ void Alarm::playAlarm(){
 
 void Alarm::stopAlarm(){
     _alarmIsRunning = false;
+    analogWrite(_buzzerPin, 0);
 }
 
 void Alarm::alarmUpdate(void){

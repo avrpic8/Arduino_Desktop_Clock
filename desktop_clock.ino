@@ -17,7 +17,7 @@ void disableRotaryMenuInterrupt(void);
 //float getTemprature(void);
 char getBatteryLevel(void);
 void lightSleep(void);
-void timedLightSleep(void);
+void timedLightSleep(char hour, char minute);
 void showMainMenu(void);
 void showTimerPage(void);
 void resetTimer();
@@ -258,7 +258,10 @@ void lightSleep(){
   Serial.println("Continue");
 }
 
-void timedLightSleep(){
+void timedLightSleep(char hour, char minute){
+
+  if(hour == alarmClock.getHourAlarm() && minute - alarmClock.getMinuteAlarm() < 2) return;
+
   digitalWrite(LED_BUILTIN, 1);
   digitalWrite(BUZZER, 0);
   ledTicker.detach();
@@ -272,7 +275,7 @@ void timedLightSleep(){
   gpio_pin_wakeup_enable(GPIO_ID_PIN(PIN_SW), GPIO_PIN_INTR_LOLEVEL);
   wifi_fpm_set_wakeup_cb(wakeupCallback);
   wifi_fpm_do_sleep(oneMinuteSleep * 1000);
-  delay(oneMinuteSleep + 100);
+  delay(oneMinuteSleep + 10);
   
   gpio_pin_wakeup_disable();
   Serial.println("Continue");
@@ -749,10 +752,10 @@ void showClockPage(){
       if(alarmClock.isAlarmOn()) ui.displayBell();
       turnWifiOff();
     }
-    if(ui.isDisplayTimeOut()){
+    if(ui.isDisplayTimeOut() && !alarmClock.isAlarmRunning()){
       ui.displayOff();
       if(alarmClock.isAlarmOn() && !alarmClock.isAlarmRunning()){
-        timedLightSleep();
+        timedLightSleep(hour, min);
       }
       if(!alarmClock.isAlarmOn()){
         lightSleep();
@@ -776,7 +779,7 @@ void showClockPage(){
     ui.updateScreen();    
 
     if(!ui.isDisplayOn() && alarmClock.isAlarmOn() && !alarmClock.isAlarmRunning()){
-      timedLightSleep();
+      timedLightSleep(hour, min);
     }
   }
 }
