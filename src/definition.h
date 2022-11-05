@@ -47,3 +47,6 @@
 
 /// timer start checker
 #define START_CHECK  (minuteCounter == 0 && secCounter > 0) || (minuteCounter > 0 && secCounter == 0) || (minuteCounter > 0 && secCounter > 0)
+
+/// sleep checker
+#define SLEEP_CHECK  !ui.isDisplayOn() && alarmClock.isAlarmOn() && !alarmClock.isAlarmRunning()

@@ -749,7 +749,6 @@ void showClockPage(){
         alarmClock.stopAlarm();
       }
       ui.displayOn();
-      if(alarmClock.isAlarmOn()) ui.displayBell();
       turnWifiOff();
     }
     if(ui.isDisplayTimeOut() && !alarmClock.isAlarmRunning()){
@@ -775,10 +774,11 @@ void showClockPage(){
     ui.displaySec(102, 35, 2, sec);
     ui.displayDate(0, 55, 1, ui.epochToDate(rtc.getEpoch()));
     ui.showBatteryPercentage(getBatteryLevel());
+    ui.displayBell();
     ui.showTemprature(110, 55, 1, 25);
     ui.updateScreen();    
 
-    if(!ui.isDisplayOn() && alarmClock.isAlarmOn() && !alarmClock.isAlarmRunning()){
+    if(SLEEP_CHECK){
       timedLightSleep(hour, min);
     }
   }
