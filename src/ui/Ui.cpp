@@ -78,7 +78,7 @@ String Ui::epochToDate(time_t epoch){
 }
 
 void Ui::displayBell(void){
-    _display->drawBitmap(60,0, siren_icon16x16, 16,16, 1);
+    _display->drawBitmap(110,16, siren_icon16x16, 16,16, 1);
 }
 
 void Ui::displayTourchOn(void){
@@ -87,6 +87,46 @@ void Ui::displayTourchOn(void){
 
 void Ui::displayTourchOff(void){
     _display->drawBitmap(50,25, tourch_off32x16, 28,16, 1); 
+}
+
+
+/// methods for display humidity , temprature and battery
+
+void Ui::showHumidity(int x, int y, int size, char value){
+    char buff[3];
+    _display->drawBitmap(x,y, humidity2_icon16x16, 16,16, 1);  
+    _display->setCursor(x + 17, y + 5);
+    _display->setTextSize(size);
+    sprintf(buff, "%02d", value);
+    _display->print(buff);
+
+}
+
+void Ui::showTemprature(int x, int y, int size, char value){
+    char buff[3];
+    _display->drawBitmap(x,y, temperature_icon16x16, 16,16, 1);
+    _display->setCursor(x + 17, y + 5);
+    _display->setTextSize(size);
+    sprintf(buff, "%02d", value);
+    _display->print(buff);
+}
+
+void Ui::showBatteryPercentage(char value){
+    _display->fillRect(100, 0, 27, 15, BLACK);
+    _display->drawRect(107, 3, 20, 10, WHITE);
+    _display->fillRect(104, 5, 3, 5, WHITE);
+    for (size_t i = 0; i < value; i++)
+    {
+        _display->drawLine(126 -i, 4, 126 -i, 11, WHITE);
+    }    
+}
+
+void Ui::showRadioIcon(int x, int y){
+    _display->drawBitmap(x,y, signal4_icon16x16, 16,16, 1);    
+}
+
+void Ui::showTourchIcon(int x, int y){
+    _display->drawBitmap(x,y, bulb_on_icon16x16, 16,16, 1);    
 }
 
 void Ui::checkLightState(int state){
@@ -238,24 +278,6 @@ void Ui::printAppBar(int x, int y, String title){
     _display->setTextColor(BLACK);
     _display->print(title);
     _display->setTextColor(WHITE);
-}
-
-void Ui::showBatteryPercentage(char value){
-    _display->fillRect(100, 0, 27, 15, BLACK);
-    _display->drawRect(107, 3, 20, 10, WHITE);
-    _display->fillRect(104, 5, 3, 5, WHITE);
-    for (size_t i = 0; i < value; i++)
-    {
-        _display->drawLine(126 -i, 4, 126 -i, 11, WHITE);
-    }    
-}
-
-void Ui::showTemprature(int x, int y, int size, char value){
-    char buff[3];
-    _display->setCursor(x, y);
-    _display->setTextSize(size);
-    sprintf(buff, "%02dc", value);
-    _display->print(buff);
 }
 
 void Ui::enableDefaultFont(){

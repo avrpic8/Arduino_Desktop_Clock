@@ -79,3 +79,4 @@ bool allowCountDown = false;
 //DallasTemperature sensor(&onewire);
 char tempC = 0;
 char tempSampleConnter = 0;
+int tourchState = 0;

@@ -23,8 +23,16 @@ class Ui{
         void displayBell(void);
         void displayTourchOn(void);
         void displayTourchOff(void);
-        void checkLightState(int state);
+        
 
+        /// methods for display humidity , temprature and battery
+        void showHumidity(int x, int y, int size, char value);
+        void showTemprature(int x, int y, int size, char value);
+        void showBatteryPercentage(char value);
+        void showRadioIcon(int x, int y);
+        void showTourchIcon(int x, int y);
+        void checkLightState(int state);
+        
 
         /// methods for control ssd1306 sleep and wakup
         void displayOff();
@@ -49,8 +57,6 @@ class Ui{
         void printNumberAt(int x, int y, int size, int num);
         void printNumberAt(int x, int y, int size, int num, int lenght);
         void printAppBar(int x, int y, String title);
-        void showBatteryPercentage(char value);
-        void showTemprature(int x, int y, int size, char value);
         void enableDefaultFont();
         void setContrast(uint8_t value);
 

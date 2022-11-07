@@ -692,7 +692,6 @@ void resetTimer(){
 
 void showTourchPage(void){
   ui.clearScreen();
-  int tourchState = 1;
   while (true)
   { 
     char clickStatus = menu.checkMenuSwitch();
@@ -767,17 +766,23 @@ void showClockPage(){
       }
     }
 
-    ui.displayWeek(0, 0, 2, week);
+    /// clock
     ui.displayHour(0,22,4, hour);
     ui.displayColon(44, 30,3);
     ui.displayMin(56,22,4, min);
     ui.displaySec(102, 35, 2, sec);
-    ui.displayDate(0, 55, 1, ui.epochToDate(rtc.getEpoch()));
-    ui.showBatteryPercentage(getBatteryLevel());
-    ui.displayBell();
-    ui.showTemprature(110, 55, 1, 25);
-    ui.updateScreen();    
+    ui.displayWeek(0, 55, 1, week);
+    ui.displayDate(30, 55, 1, ui.epochToDate(rtc.getEpoch()));
 
+    /// sensors and icons
+    ui.showBatteryPercentage(getBatteryLevel());
+    ui.showHumidity(0, 0, 1, 10);
+    ui.showTemprature(30, 0, 1, 25);
+    ui.showRadioIcon(63, 0);
+    if(alarmClock.isAlarmOn()) ui.displayBell();
+    if(tourchState == ON) ui.showTourchIcon(83, 0);
+    
+    ui.updateScreen();    
     if(SLEEP_CHECK){
       timedLightSleep(hour, min);
     }
