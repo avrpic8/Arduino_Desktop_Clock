@@ -14,6 +14,7 @@ public:
     bool isAlarmOn(void);
     void setWhenAlarmOn(uint8 hour, uint8 minute, uint8 second);
     void setWhenAlarmOff(uint8 hour, uint8 minute, uint8 second);
+    void setAlarmSoundLevel(char newLevel);
     void tick(uint8 hour, uint8 minute, uint8 second);
     void alarmUpdate(void);
     void playAlarm();
@@ -30,8 +31,8 @@ public:
 
 private:
     uint8_t _hourOn = 0;        //!< Alarm hour
-    uint8_t _minuteOn = 2;      //!< Alarm minute
-    uint8_t _secondOn = 0;      //!< Alarm second
+    uint8_t _minuteOn = 0;      //!< Alarm minute
+    uint8_t _secondOn = 5;      //!< Alarm second
 
     uint8_t _hourOff;        //!< Alarm hour
     uint8_t _minuteOff;      //!< Alarm minute
@@ -45,6 +46,7 @@ private:
     void (*_handlerOff)(); //!< Alarm off handler
 
     uint8 _buzzerPin;
+    uint8 _soundLevel = 0;
 };
 
 #endif

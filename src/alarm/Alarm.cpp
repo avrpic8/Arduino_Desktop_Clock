@@ -32,6 +32,10 @@ void Alarm::setWhenAlarmOff(uint8 hour, uint8 minute, uint8 second){
     _secondOff = second;    
 }
 
+void Alarm::setAlarmSoundLevel(char newLevel){
+    this->_soundLevel = newLevel;
+}
+
 void Alarm::tick(uint8 hour, uint8 minute, uint8 second){
     if ((hour == this->_hourOn) && (minute == this->_minuteOn) && (second == this->_secondOn)) {
         if(_alarmEvent){
@@ -98,7 +102,7 @@ void Alarm::disableAlarmEvent(void){
 
 void Alarm::toggleBuzzer(bool state){
     if(state){
-        analogWrite(_buzzerPin, 100);
+        analogWrite(_buzzerPin, this->_soundLevel);
     }else{
         analogWrite(_buzzerPin, 0);
     }

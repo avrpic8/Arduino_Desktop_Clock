@@ -38,7 +38,8 @@
 #define CLOCK_SETTING 4
 #define WIFI_SETTING 5
 #define DISPLAY 6
-#define EXIT 7
+#define SOUND 7
+#define EXIT 8
 
 #define CLICKED 1
 #define LONG_CLICKED 2

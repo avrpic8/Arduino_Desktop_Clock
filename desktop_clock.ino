@@ -11,6 +11,7 @@ void tryConnectToWifi(void);
 void initWifiModule(void);
 bool initNtpClient(void);
 void initRtc(void);
+void initAlarm(void);
 void updateRTC(void);
 void enableRotaryMenuInterrupt(void);
 void disableRotaryMenuInterrupt(void);
@@ -41,11 +42,10 @@ void setup()
     // initWifiModule();
     // initNtpClient();
     initRtc();
+    initAlarm();
     
     /// start ticker
     ledTicker.attach(1, blinkLED);
-    alarmClock = Alarm(&alarmOn, &alarmOff, BUZZER);
-    myTimer    = Alarm(&timerAlarmOn, &timerAlarmOff, BUZZER);
     //sensor.begin();
 
     turnWifiOff();
@@ -54,8 +54,11 @@ void setup()
 
 IRAM_ATTR void checkPosition()
 {
+  disableRotaryMenuInterrupt();
   menuIdx = menu.getMenuIndex();
   menu.setInputTime(millis());
+  beeper();
+  enableRotaryMenuInterrupt();
 }
 
 void wakeupCallback() {
@@ -203,6 +206,20 @@ void initRtc(void){
   delay(2000);
 }
 
+void initAlarm(void){
+  alarmClock = Alarm(&alarmOn, &alarmOff, BUZZER);
+  myTimer    = Alarm(&timerAlarmOn, &timerAlarmOff, BUZZER);
+
+  alarmClock.setAlarmSoundLevel(125);
+  myTimer.setAlarmSoundLevel(1);
+}
+
+void beeper(){
+  analogWrite(BUZZER, 100);
+  delay(500);
+  analogWrite(BUZZER, 0);
+}
+
 void updateRTC(void){
   if(rtcUpdateCounter == 20){
     ui.clearScreen();
@@ -308,7 +325,7 @@ void showMainMenu(void){
 
   ui.disableSleepForDisplay();
   menu.setInputTime(millis());
-  menu.resetMenu(7, 0);
+  menu.resetMenu(8, 0);
   menuIdx = 0;
   enableRotaryMenuInterrupt();
 
@@ -514,7 +531,7 @@ void showMainMenu(void){
         if(menu.checkMenuSwitch() == CLICKED) showDisplaySetting();
         break;
 
-      case EXIT:
+      case SOUND:
         ui.clearDisplayAt(1, 16, " ");
         ui.clearDisplayAt(1, 26, " ");
         ui.clearDisplayAt(1, 36, " ");
@@ -532,6 +549,31 @@ void showMainMenu(void){
 
         display.fillRect(10, 46, 100, 8, BLACK);
         ui.printStringAt(10, 46, "Display", false);
+
+        display.fillRect(10, 56, 100, 8, BLACK);
+        ui.printStringAt(10, 56, "Sounds", false);
+
+        ui.updateScreen();
+        break;
+  
+      case EXIT:
+        ui.clearDisplayAt(1, 16, " ");
+        ui.clearDisplayAt(1, 26, " ");
+        ui.clearDisplayAt(1, 36, " ");
+        ui.clearDisplayAt(1, 46, " ");
+        ui.printStringAt(1, 56, "o");
+
+        display.fillRect(10, 16, 100, 8, BLACK);
+        ui.printStringAt(10, 16, "Clock set", false);
+
+        display.fillRect(10, 26, 100, 8, BLACK);
+        ui.printStringAt(10, 26, "Wifi set", false);
+
+        display.fillRect(10, 36, 100, 8, BLACK);
+        ui.printStringAt(10, 36, "Display", false);
+
+        display.fillRect(10, 46, 100, 8, BLACK);
+        ui.printStringAt(10, 46, "Sounds", false);
 
         display.fillRect(10, 56, 100, 8, BLACK);
         ui.printStringAt(10, 56, "Exit", false);
@@ -580,7 +622,7 @@ void showTimerPage(void){
           if(menu.checkMenuSwitch() == CLICKED){
             resetTimer();
             ui.clearScreen();
-            menu.resetMenu(7, 2);
+            menu.resetMenu(8, 2);
             menuIdx = 2;
             return;
           }
@@ -698,7 +740,7 @@ void showTourchPage(void){
     if(clickStatus == LONG_CLICKED){
       ui.enableDefaultFont();
       ui.clearScreen();
-      menu.resetMenu(7, 3);
+      menu.resetMenu(8, 3);
       menuIdx = 3;
       return;
     }
@@ -834,7 +876,7 @@ void showClockSetting(void){
       ui.clearDisplayAt(1, 46, "o");
       ui.updateScreen();
       if(menu.checkMenuSwitch() == CLICKED){
-        menu.resetMenu(7, 4);
+        menu.resetMenu(8, 4);
         menuIdx = 4;  
         ui.clearScreen();
         return;
@@ -1135,8 +1177,8 @@ void showWifiSetting(void){
             break;
           } 
           if(clickStatus == LONG_CLICKED){
-            menu.resetMenu(5, 3);
-            menuIdx = 3; 
+            menu.resetMenu(8, 5);
+            menuIdx = 5; 
             ui.enableDefaultFont();
             ui.clearScreen();
             return; 
@@ -1150,7 +1192,7 @@ void showWifiSetting(void){
         while (true){ 
           ui.updateScreen();
           if(menu.checkMenuSwitch() == CLICKED){
-            menu.resetMenu(7, 5);
+            menu.resetMenu(8, 5);
             menuIdx = 5;  
             ui.enableDefaultFont();
             ui.clearScreen();
@@ -1202,7 +1244,7 @@ void showDisplaySetting(void){
         ui.setContrast(menuIdx);
         ui.updateScreen();
         if(menu.checkMenuSwitch() == CLICKED){
-          menu.resetMenu(7, 6);
+          menu.resetMenu(8, 6);
           menuIdx = 6;  
           ui.enableDefaultFont();
           ui.clearScreen();
