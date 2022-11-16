@@ -17,6 +17,7 @@ extern "C" {
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Adafruit_AHTX0.h>
 #include <ErriezDS1307.h>
 #include <Ticker.h>
 #include <stdio.h>
@@ -77,6 +78,12 @@ bool allowCountDown = false;
 /// oneWire ds18b20
 //OneWire onewire(ONEWIRE_BUS);
 //DallasTemperature sensor(&onewire);
-char tempC = 0;
-char tempSampleConnter = 0;
-int tourchState = 0;
+
+/// Aht10 Humidity and temerature sensor
+Adafruit_AHTX0 aht;
+sensors_event_t humidity, temp;
+
+char sensorSampleConnter = 0;
+bool countNow = true;
+bool allowSamplingSensors = true;
+bool tourchState = false;

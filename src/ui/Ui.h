@@ -2,6 +2,7 @@
 #define Ui_h
 
 #include<Adafruit_SSD1306.h>
+#include"../definition.h"
 #include"../icon/iot_iconset_16x16.h"
 
 class Ui{
@@ -31,7 +32,7 @@ class Ui{
         void showBatteryPercentage(char value);
         void showRadioIcon(int x, int y);
         void showTourchIcon(int x, int y);
-        void checkLightState(int state);
+        void checkLightState(bool state);
         
 
         /// methods for control ssd1306 sleep and wakup

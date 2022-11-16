@@ -93,11 +93,11 @@ void Ui::displayTourchOff(void){
 /// methods for display humidity , temprature and battery
 
 void Ui::showHumidity(int x, int y, int size, char value){
-    char buff[3];
+    char buff[2];
     _display->drawBitmap(x,y, humidity2_icon16x16, 16,16, 1);  
     _display->setCursor(x + 17, y + 5);
     _display->setTextSize(size);
-    sprintf(buff, "%02d", value);
+    sprintf(buff, "%2d", value);
     _display->print(buff);
 
 }
@@ -129,14 +129,14 @@ void Ui::showTourchIcon(int x, int y){
     _display->drawBitmap(x,y, bulb_on_icon16x16, 16,16, 1);    
 }
 
-void Ui::checkLightState(int state){
+void Ui::checkLightState(bool state){
     switch (state){
-        case 0:
-            displayTourchOn();
+        case OFF:
+            displayTourchOff();
             break;
         
-        case 1:
-            displayTourchOff();
+        case ON:
+            displayTourchOn();
             break;
     }
 }
@@ -146,16 +146,16 @@ void Ui::checkLightState(int state){
 void Ui::displayOff(){
 
     /// clear horizantal
-    for(int16_t col=0; col<33; col++){
-        _display->drawLine(0, col, 127, col, BLACK);
+    for(uint8 col=0; col<33; col++){   
+        _display->drawLine(0, col, 127, col, BLACK);    
         _display->drawLine(0, 63 - col, 127, 63 - col, BLACK);
         updateScreen();
     }
 
     _display->drawLine(0, 33, 127, 33, WHITE);
 
-    /// clear vertical
-    for(int16_t row = 0; row < 63; row++){
+    // /// clear vertical
+    for(uint8 row = 0; row < 63; row++){
         _display->drawPixel(row, 33, BLACK);
         _display->drawPixel(127 - row, 33, BLACK);
         updateScreen();
@@ -163,7 +163,7 @@ void Ui::displayOff(){
     
     _displayTimeOut = false;
     _displayOn = false;
-    _display->ssd1306_command(SSD1306_DISPLAYOFF); 
+    _display->ssd1306_command(SSD1306_DISPLAYOFF);
     clearScreen();  
 
 }

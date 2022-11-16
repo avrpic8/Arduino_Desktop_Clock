@@ -11,6 +11,8 @@ void tryConnectToWifi(void);
 void initWifiModule(void);
 bool initNtpClient(void);
 void initRtc(void);
+void initAht(void);
+void resetAht(void);
 void initAlarm(void);
 void updateRTC(void);
 void enableRotaryMenuInterrupt(void);
@@ -37,11 +39,12 @@ void setup()
     Serial.begin(115200);
     
     intiPins();
-    initTwi();
+    //initTwi();
     initLcd();
     // initWifiModule();
     // initNtpClient();
     initRtc();
+    initAht();
     initAlarm();
     
     /// start ticker
@@ -100,8 +103,15 @@ void blinkLED(){
   int state = digitalRead(LED_BUILTIN);
   digitalWrite(LED_BUILTIN, !state);
   ui.checkDisplaySleep();
-  tempSampleConnter++;
-
+  
+  if(countNow){
+    if(++sensorSampleConnter>=TEMP_SAMPLE_TIME){
+      sensorSampleConnter = 0;
+      countNow = false;
+      allowSamplingSensors = true;
+    }  
+  }
+  
   if(allowCountDown){
     if(secCounter == 0 && minuteCounter > 0){
       minuteCounter--;
@@ -122,7 +132,7 @@ void intiPins(void){
 
 void initTwi(void){
   wire.begin(SDA,SCL);
-  wire.setClock(1000000);
+  wire.setClock(400000);
 }
 
 void initLcd(void){
@@ -206,6 +216,18 @@ void initRtc(void){
   delay(2000);
 }
 
+void initAht(void){
+  if (! aht.begin(&wire)) {
+    Serial.println("Could not find AHT? Check wiring");
+    while (1) delay(10);
+  }
+}
+
+void resetAht(void){
+  aht.resetSensor();
+  allowSamplingSensors = true;
+}
+
 void initAlarm(void){
   alarmClock = Alarm(&alarmOn, &alarmOff, BUZZER);
   myTimer    = Alarm(&timerAlarmOn, &timerAlarmOff, BUZZER);
@@ -216,8 +238,9 @@ void initAlarm(void){
 
 void beeper(){
   analogWrite(BUZZER, 100);
-  delay(500);
+  delay(250);
   analogWrite(BUZZER, 0);
+  delay(250);
 }
 
 void updateRTC(void){
@@ -746,10 +769,10 @@ void showTourchPage(void){
     }
     if(clickStatus == CLICKED){
       ui.clearScreen();
+      digitalWrite(TOURCH_PIN, !digitalRead(TOURCH_PIN));
       tourchState = digitalRead(TOURCH_PIN);
       ui.checkLightState(tourchState);
       Serial.println(tourchState);
-      digitalWrite(TOURCH_PIN, !tourchState);
     }  
     if(ui.isDisplayTimeOut()){
       ui.displayOff();
@@ -770,14 +793,18 @@ void showClockPage(){
   
   while(1){
 
-    /// get time from ds1307 rtc
+    /// local variables
     uint16 year;
-    uint8_t hour, min, sec, temp, week;
-    rtc.getDateTime(&hour, &min, &sec, &temp, &temp, &year, &week);
+    uint8_t hour, min, sec, dummy, week;
 
-    if(++tempSampleConnter == TEMP_SAMPLE_TIME){
-      tempSampleConnter = 0;
-      //tempC = getTemprature();
+    /// get time from ds1307 rtc
+    rtc.getDateTime(&hour, &min, &sec, &dummy, &dummy, &year, &week);
+
+    /// get events from aht10 sensor
+    if(allowSamplingSensors && !alarmClock.isAlarmRunning()){
+      aht.getEvent(&humidity, &temp);
+      allowSamplingSensors = false;
+      countNow = true;
     }
 
     char clickStatus = menu.checkMenuSwitch();
@@ -790,6 +817,7 @@ void showClockPage(){
         alarmClock.stopAlarm();
       }
       ui.displayOn();
+      resetAht();  
       turnWifiOff();
     }
     if(ui.isDisplayTimeOut() && !alarmClock.isAlarmRunning()){
@@ -818,8 +846,8 @@ void showClockPage(){
 
     /// sensors and icons
     ui.showBatteryPercentage(getBatteryLevel());
-    ui.showHumidity(0, 0, 1, 10);
-    ui.showTemprature(30, 0, 1, 25);
+    ui.showHumidity(0, 0, 1, humidity.relative_humidity);
+    ui.showTemprature(30, 0, 1, temp.temperature);
     ui.showRadioIcon(63, 0);
     if(alarmClock.isAlarmOn()) ui.displayBell();
     if(tourchState == ON) ui.showTourchIcon(83, 0);
