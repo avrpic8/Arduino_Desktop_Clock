@@ -17,11 +17,11 @@ void initAlarm(void);
 void updateRTC(void);
 void enableRotaryMenuInterrupt(void);
 void disableRotaryMenuInterrupt(void);
-//float getTemprature(void);
 char getBatteryLevel(void);
 void lightSleep(void);
 void timedLightSleep(char hour, char minute);
 void showMainMenu(void);
+void showFmRadioPage(void);
 void showTimerPage(void);
 void resetTimer();
 void showTourchPage(void);
@@ -37,15 +37,17 @@ void showDisplaySetting(void);
 void setup()
 {
     Serial.begin(115200);
-    
+
     intiPins();
-    //initTwi();
+    initTwi();
     initLcd();
     // initWifiModule();
     // initNtpClient();
     initRtc();
     initAht();
     initAlarm();
+    initRadioModule();
+
     
     /// start ticker
     ledTicker.attach(1, blinkLED);
@@ -60,7 +62,6 @@ IRAM_ATTR void checkPosition()
   disableRotaryMenuInterrupt();
   menuIdx = menu.getMenuIndex();
   menu.setInputTime(millis());
-  beeper();
   enableRotaryMenuInterrupt();
 }
 
@@ -236,6 +237,20 @@ void initAlarm(void){
   myTimer.setAlarmSoundLevel(1);
 }
 
+void initRadioModule(void){
+  // Initialize the Radio 
+  radio.init();
+
+  // Enable information to the Serial port
+  radio.debugEnable();
+
+  // Set all radio setting to the fixed values.
+  radio.setBandFrequency(FIX_BAND, FIX_STATION);
+  radio.setVolume(FIX_VOLUME);
+  radio.setMono(false);
+  radio.setMute(false);
+}
+
 void beeper(){
   analogWrite(BUZZER, 100);
   delay(250);
@@ -338,12 +353,6 @@ char getBatteryLevel(void){
   return result;
 }
 
-// float getTemprature(void){
-//   sensor.requestTemperatures();
-//   float tempC = sensor.getTempCByIndex(0);
-//   return tempC;
-// }
-
 void showMainMenu(void){
 
   ui.disableSleepForDisplay();
@@ -417,7 +426,12 @@ void showMainMenu(void){
 
         display.fillRect(10, 56, 100, 8, BLACK);
         ui.printStringAt(10, 56, "Clock set", false);
+        
         ui.updateScreen();
+        if(menu.checkMenuSwitch() == CLICKED){
+          ui.enableSleepForDisplay();
+          showFmRadioPage();
+        }
         break;
 
       case TIMER:
@@ -613,6 +627,38 @@ void showMainMenu(void){
   }
 }
 
+void showFmRadioPage(void){
+  analogWrite(BUZZER, 0);
+  ui.clearScreen();  
+  ui.printStringAt(0, 0, 2,"FM radio");
+
+  while (true)
+  {
+    char s[12];
+    radio.formatFrequency(s, sizeof(s));
+    Serial.print("Station:"); 
+    Serial.println(s);
+    
+    Serial.print("Radio:"); 
+    radio.debugRadioInfo();
+    
+    Serial.print("Audio:"); 
+    radio.debugAudioInfo();
+
+    ui.updateScreen();
+    char clickStatus = menu.checkMenuSwitch();
+    if(clickStatus == LONG_CLICKED){
+      ui.clearScreen();
+      menu.resetMenu(8, 1);
+      menuIdx = 2;
+      return;
+    }
+
+    delay(1000);
+  }
+  
+}
+
 void showTimerPage(void){
 
   ui.clearScreen();
@@ -789,8 +835,6 @@ void showTourchPage(void){
 
 void showClockPage(){
   display.setTextColor(WHITE, BLACK);
-  if(alarmClock.isAlarmOn()) ui.displayBell();
-  
   while(1){
 
     /// local variables

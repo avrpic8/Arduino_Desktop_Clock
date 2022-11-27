@@ -45,6 +45,11 @@
 #define LONG_CLICKED 2
 
 
+/// Radio freq test
+#define FIX_BAND     RADIO_BAND_FM   ///< The band that will be tuned by this sketch is FM.
+#define FIX_STATION  10500            ///< The station that will be tuned by this sketch is 89.30 MHz.
+#define FIX_VOLUME   4               ///< The volume that will be set by this sketch is level 4.
+
 
 /// timer start checker
 #define START_CHECK  (minuteCounter == 0 && secCounter > 0) || (minuteCounter > 0 && secCounter == 0) || (minuteCounter > 0 && secCounter > 0)
