@@ -32,7 +32,7 @@ public:
 private:
     uint8_t _hourOn = 0;        //!< Alarm hour
     uint8_t _minuteOn = 0;      //!< Alarm minute
-    uint8_t _secondOn = 5;      //!< Alarm second
+    uint8_t _secondOn = 0;      //!< Alarm second
 
     uint8_t _hourOff;        //!< Alarm hour
     uint8_t _minuteOff;      //!< Alarm minute

@@ -39,7 +39,7 @@ void setup()
     Serial.begin(115200);
 
     intiPins();
-    initTwi();
+    //initTwi();
     initLcd();
     // initWifiModule();
     // initNtpClient();
@@ -59,10 +59,10 @@ void setup()
 
 IRAM_ATTR void checkPosition()
 {
-  disableRotaryMenuInterrupt();
+  //disableRotaryMenuInterrupt();
   menuIdx = menu.getMenuIndex();
   menu.setInputTime(millis());
-  enableRotaryMenuInterrupt();
+  //enableRotaryMenuInterrupt();
 }
 
 void wakeupCallback() {
@@ -133,11 +133,11 @@ void intiPins(void){
 
 void initTwi(void){
   wire.begin(SDA,SCL);
-  wire.setClock(400000);
+  wire.setClock(100000);
 }
 
 void initLcd(void){
-  display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &wire, -1);
+  display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
       Serial.println(F("SSD1306 allocation failed"));
@@ -218,7 +218,7 @@ void initRtc(void){
 }
 
 void initAht(void){
-  if (! aht.begin(&wire)) {
+  if (! aht.begin()) {
     Serial.println("Could not find AHT? Check wiring");
     while (1) delay(10);
   }
@@ -969,10 +969,11 @@ void showClockSettingTitles(void){
 void timeSet(void){
   ui.clearScreen();
   menu.resetMenu(2);
+  menuIdx = 0;
 
   /// get time from ds1307 rtc
-  uint8_t hour, min, sec;
-  rtc.getTime(&hour, &min, &sec);
+  u8_t hour =0, min =0, sec =0;
+  while(!rtc.getTime(&hour, &min, &sec));
   ui.displayHour(0,30,3, hour);
   ui.displayColon(35, 30,3);
   ui.displayMin(56,30,3, min);
@@ -983,7 +984,7 @@ void timeSet(void){
     {
     case 0:
       display.fillTriangle(10, 3, 30, 3, 20, 15, WHITE);
-      menu.resetMenu(23, hour);
+      menu.resetMenu(23, 0, hour);
       menuIdx = hour;
       while (true)
       {
@@ -994,6 +995,7 @@ void timeSet(void){
           break;
         }  
         ui.updateScreen(); 
+        delay(2);
       }
       break;
     
@@ -1001,7 +1003,7 @@ void timeSet(void){
       display.fillRect(10, 3, 25, 15, BLACK);
       display.fillRect(107, 3, 25, 15, BLACK);
       display.fillTriangle(60, 3, 80, 3, 70, 15, WHITE);
-      menu.resetMenu(59, min);
+      menu.resetMenu(59, 0, min);
       menuIdx = min;
       while (true)
       {
@@ -1019,7 +1021,7 @@ void timeSet(void){
       display.fillRect(10, 3, 25, 15, BLACK);
       display.fillRect(60, 3, 25, 15, BLACK);
       display.fillTriangle(107, 3, 127, 3, 117, 15, WHITE);
-      menu.resetMenu(59, sec);
+      menu.resetMenu(59, 0, sec);
       menuIdx = sec;
       while (true)
       {
@@ -1134,7 +1136,7 @@ void dateSet(void){
 
 void alarmSet(void){
 
-  uint8 alarmH, alarmM;
+  u_int8_t alarmH, alarmM;
 
   ui.clearScreen();
   menu.resetMenu(2);
